@@ -1,10 +1,10 @@
 import './App.css'
-
+import Home from "./pages/home";
 function App() {
   return (
-    <div>
-      <h1> Stillwater Today</h1>
-      <p> React + Typescript is running!</p>
+    <div className="App">
+      <Home/>
+
     </div>
   )
 }

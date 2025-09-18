@@ -1,11 +1,33 @@
-# React + TypeScript + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+project-root/
+├── .env
+├── .env.example
+├── .eslintrc.js
+├── .gitignore
+├── index.html
+├── package-lock.json
+├── package.json
+├── README.md
+├── tsconfig.json
+├── vite.config.ts
+├── src/
+│   ├── assets/
+│   │   └── ...            # Images, icons, static files
+│   ├── components/
+│   │   └── ...            # Reusable UI components
+│   ├── firebase/
+│   │   ├── index.ts       # Central exports for all Firebase modules
+│   │   ├── config.ts      # Initializes Firebase app and analytics
+│   │   ├── firestore.ts   # Firestore DB instance
+│   │   ├── auth.ts        # Firebase Authentication instance
+│   │   └── storage.ts     # Firebase Storage instance
+│   ├── pages/
+│   │   └── home.tsx       # Example page using Firebase
+│   ├── app.css
+│   ├── app.tsx
+│   ├── index.css
+│   └── main.tsx
+└── .github/
+    └── ...                # GitHub workflows, issue templates, etc.
 
 ## Expanding the ESLint configuration
 
