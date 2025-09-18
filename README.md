@@ -1,3 +1,4 @@
+```text
 project-root/
 ├── .env
 ├── .env.example
@@ -27,7 +28,8 @@ project-root/
 │   ├── index.css
 │   └── main.tsx
 └── .github/
-    └── ...                # GitHub workflows, issue templates, etc.
+    └── ...
+```
 
 ## Expanding the ESLint configuration
 
