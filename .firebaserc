@@ -1,18 +1,8 @@
 {
   "projects": {
-    "default": "your-firebase-project-id"
+    "default": "stillwater-today"
   },
   "targets": {
-    "your-firebase-project-id": {
-      "hosting": {
-        "staging": [
-          "your-staging-site-id"
-        ],
-        "prod": [
-          "your-prod-site-id"
-        ]
-      }
-    },
     "stillwater-today": {
       "hosting": {
         "staging": [
