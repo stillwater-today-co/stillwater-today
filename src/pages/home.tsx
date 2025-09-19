@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import { collection, addDoc } from "firebase/firestore";
-import { firestore } from "../firebase/config";
+import { firestore } from "../firebase/firestore";
 
 export default function Home() {
   const messageRef = useRef<HTMLInputElement>(null); // specify the input type
