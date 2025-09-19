@@ -1,0 +1,18 @@
+{
+  "projects": {
+    "default": "stillwater-today"
+  },
+  "targets": {
+    "stillwater-today": {
+      "hosting": {
+        "staging": [
+          "stillwater-today-staging"
+        ],
+        "prod": [
+          "stillwater-today-prod"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}
