@@ -33,7 +33,7 @@ jobs:
       - name: Deploy to Firebase Hosting (staging target)
         uses: w9jds/firebase-action@v13.16.0
         with:
-          args: deploy --project ${{ secrets.FIREBASE_PROJECT_ID }} --only hosting:staging
+          args: deploy --project ${{ secrets.STAGING_FIREBASE_PROJECT_ID }} --only hosting:staging
         env:
           GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 

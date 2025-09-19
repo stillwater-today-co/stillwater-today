@@ -4,9 +4,10 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 
-export default [
-  { ignores: ['dist'] },
+export default tseslint.config(
+  { ignores: ['dist', '.vite', 'node_modules'] },
   {
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2020,
@@ -17,8 +18,6 @@ export default [
       'react-refresh': reactRefresh,
     },
     rules: {
-      ...js.configs.recommended.rules,
-      ...tseslint.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': [
         'warn',
@@ -26,4 +25,4 @@ export default [
       ],
     },
   },
-]
+)
