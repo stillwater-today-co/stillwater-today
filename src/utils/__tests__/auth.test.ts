@@ -35,7 +35,7 @@ describe('authUtils', () => {
       const mockUser = { uid: '123', email: 'test@example.com' }
       vi.mocked(signInWithEmailAndPassword).mockResolvedValue({
         user: mockUser as User
-      } as any)
+      } as unknown as ReturnType<typeof signInWithEmailAndPassword>)
 
       const result = await authUtils.signIn('test@example.com', 'password')
 
@@ -60,7 +60,7 @@ describe('authUtils', () => {
       const mockUser = { uid: '123', email: 'test@example.com' }
       vi.mocked(createUserWithEmailAndPassword).mockResolvedValue({
         user: mockUser as User
-      } as any)
+      } as unknown as ReturnType<typeof createUserWithEmailAndPassword>)
 
       const result = await authUtils.signUp('test@example.com', 'password', 'Test User')
 
@@ -74,7 +74,7 @@ describe('authUtils', () => {
       const mockUser = { uid: '123', email: 'test@example.com' }
       vi.mocked(createUserWithEmailAndPassword).mockResolvedValue({
         user: mockUser as User
-      } as any)
+      } as unknown as ReturnType<typeof createUserWithEmailAndPassword>)
 
       const result = await authUtils.signUp('test@example.com', 'password')
 

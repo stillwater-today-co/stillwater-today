@@ -1,7 +1,7 @@
 import './App.css'
 import { AuthProvider } from './contexts/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
-import Home from './pages/home'
+import Home from './pages/Home'
 import AuthPage from './pages/AuthPage'
 
 function App() {

@@ -1,0 +1,22 @@
+import { createContext } from 'react'
+import type { User } from 'firebase/auth'
+import type { AuthUser } from '../utils/auth'
+
+// Define the shape of our auth context
+export interface AuthContextType {
+  // Auth state
+  user: AuthUser | null
+  loading: boolean
+  error: string | null
+  isAuthenticated: boolean
+  isGuest: boolean
+  
+  // Auth actions
+  signIn: (email: string, password: string) => Promise<{ user: User | null; error: Error | null }>
+  signUp: (email: string, password: string, displayName?: string) => Promise<{ user: User | null; error: Error | null }>
+  signOut: () => Promise<{ error: Error | null }>
+  resetPassword: (email: string) => Promise<{ error: Error | null }>
+}
+
+// Create the context
+export const AuthContext = createContext<AuthContextType | undefined>(undefined)
