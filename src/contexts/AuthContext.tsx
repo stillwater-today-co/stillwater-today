@@ -1,11 +1,12 @@
-import React, { createContext, useContext } from 'react'
+import React, { createContext } from 'react'
 import type { ReactNode } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { authUtils } from '../utils/auth'
 import type { AuthUser } from '../utils/auth'
+import type { User } from 'firebase/auth'
 
 // Define the shape of our auth context
-interface AuthContextType {
+export interface AuthContextType {
   // Auth state
   user: AuthUser | null
   loading: boolean
@@ -14,14 +15,14 @@ interface AuthContextType {
   isGuest: boolean
   
   // Auth actions
-  signIn: (email: string, password: string) => Promise<{ user: any; error: Error | null }>
-  signUp: (email: string, password: string, displayName?: string) => Promise<{ user: any; error: Error | null }>
+  signIn: (email: string, password: string) => Promise<{ user: User | null; error: Error | null }>
+  signUp: (email: string, password: string, displayName?: string) => Promise<{ user: User | null; error: Error | null }>
   signOut: () => Promise<{ error: Error | null }>
   resetPassword: (email: string) => Promise<{ error: Error | null }>
 }
 
 // Create the context
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 // AuthProvider component that wraps your app
 interface AuthProviderProps {
@@ -61,15 +62,4 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       {children}
     </AuthContext.Provider>
   )
-}
-
-// Custom hook to use the auth context
-export const useAuthContext = (): AuthContextType => {
-  const context = useContext(AuthContext)
-  
-  if (context === undefined) {
-    throw new Error('useAuthContext must be used within an AuthProvider')
-  }
-  
-  return context
 }

@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react'
 import { collection, addDoc } from 'firebase/firestore'
 import { firestore } from '../firebase/firestore'
-import { useAuthContext } from '../contexts/AuthContext'
+import { useAuthContext } from '../hooks/useAuthContext'
 import LogoutButton from '../components/auth/LogoutButton'
 
 const Home = () => {

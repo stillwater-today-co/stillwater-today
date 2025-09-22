@@ -1,5 +1,5 @@
 import React from 'react'
-import { useAuthContext } from '../contexts/AuthContext'
+import { useAuthContext } from '../hooks/useAuthContext'
 
 interface ProtectedRouteProps {
   children: React.ReactNode

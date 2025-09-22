@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useAuthContext } from '../../contexts/AuthContext'
+import { useAuthContext } from '../../hooks/useAuthContext'
 
 interface SignupFormProps {
   onSuccess?: () => void
