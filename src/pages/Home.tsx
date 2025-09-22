@@ -1,8 +1,11 @@
 import React, { useRef, useState } from 'react'
 import { collection, addDoc } from 'firebase/firestore'
 import { firestore } from '../firebase/firestore'
+import { useAuthContext } from '../contexts/AuthContext'
+import LogoutButton from '../components/auth/LogoutButton'
 
 const Home = () => {
+  const { user, isAuthenticated } = useAuthContext()
   const messageRef = useRef<HTMLInputElement>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
@@ -44,24 +47,39 @@ const Home = () => {
 
   return (
     <div className="message-form">
-      <h1>Stillwater Today</h1>
-      <p>Submit a message to our Firebase database:</p>
+      <div className="header">
+        <h1>Stillwater Today</h1>
+        {isAuthenticated && (
+          <div className="user-info">
+            <span>Welcome, {user?.displayName || user?.email}!</span>
+            <LogoutButton />
+          </div>
+        )}
+      </div>
       
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="message">Your Message</label>
-        <input
-          id="message"
-          type="text"
-          ref={messageRef}
-          placeholder="Enter your message here..."
-          disabled={isSubmitting}
-          required
-        />
-        
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Sending...' : 'Send Message'}
-        </button>
-      </form>
+      {isAuthenticated ? (
+        <p>Submit a message to our Firebase database:</p>
+      ) : (
+        <p>Please sign in to submit messages.</p>
+      )}
+      
+      {isAuthenticated && (
+        <form onSubmit={handleSubmit}>
+          <label htmlFor="message">Your Message</label>
+          <input
+            id="message"
+            type="text"
+            ref={messageRef}
+            placeholder="Enter your message here..."
+            disabled={isSubmitting}
+            required
+          />
+          
+          <button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Sending...' : 'Send Message'}
+          </button>
+        </form>
+      )}
 
       {submitStatus === 'success' && (
         <p style={{ color: '#4caf50', textAlign: 'center' }}>

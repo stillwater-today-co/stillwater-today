@@ -1,11 +1,19 @@
 import './App.css'
-import Home from './pages/Home'
+import { AuthProvider } from './contexts/AuthContext'
+import ProtectedRoute from './components/ProtectedRoute'
+import Home from './pages/home'
+import AuthPage from './pages/AuthPage'
 
 function App() {
   return (
-    <div className="App">
-      <Home />
-    </div>
+    <AuthProvider>
+      <div className="App">
+        {/* Show auth page for unauthenticated users */}
+        <ProtectedRoute requireAuth={false} fallback={<Home />}>
+          <AuthPage />
+        </ProtectedRoute>
+      </div>
+    </AuthProvider>
   )
 }
 
