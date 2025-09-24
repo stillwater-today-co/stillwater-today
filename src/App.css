@@ -1,12 +1,11 @@
 .App {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   position: relative;
 }
 
@@ -18,98 +17,196 @@
   right: 0;
   bottom: 0;
   background: 
-    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+    radial-gradient(circle at 20% 80%, rgba(249, 115, 22, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(248, 250, 252, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(249, 115, 22, 0.08) 0%, transparent 50%);
   pointer-events: none;
 }
 
 .message-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  max-width: 400px;
+  gap: 2rem;
+  max-width: 600px;
   margin: 2rem auto;
-  padding: 2rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
+  padding: 3rem;
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  border-radius: 24px;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(71, 85, 105, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.message-form::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #f97316, transparent);
 }
 
 .message-form h1 {
   text-align: center;
+  margin-bottom: 0.5rem;
+  color: #f8fafc;
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.message-form .user-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(71, 85, 105, 0.2);
   margin-bottom: 1rem;
-  color: #646cff;
+}
+
+.message-form .user-info .welcome {
+  color: #cbd5e1;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.message-form .sign-out-btn {
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+}
+
+.message-form .sign-out-btn:hover {
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(220, 38, 38, 0.3);
+}
+
+.message-form .description {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
 }
 
 .message-form label {
-  font-weight: 500;
-  margin-bottom: 0.5rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #e2e8f0;
+  font-size: 1rem;
 }
 
 .message-form input {
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 1rem 1.25rem;
+  border: 2px solid rgba(71, 85, 105, 0.3);
+  border-radius: 12px;
   font-size: 1rem;
-  background: rgba(255, 255, 255, 0.1);
-  color: inherit;
+  background: rgba(30, 41, 59, 0.5);
+  color: #f8fafc;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
 }
 
 .message-form input:focus {
   outline: none;
-  border-color: #646cff;
-  box-shadow: 0 0 0 2px rgba(100, 108, 255, 0.2);
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+  background: rgba(30, 41, 59, 0.8);
+}
+
+.message-form input:hover {
+  border-color: rgba(71, 85, 105, 0.5);
 }
 
 .message-form button {
   padding: 0.75rem 1.5rem;
-  background-color: #646cff;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
   color: white;
   border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  font-weight: 500;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.25s;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
+  text-transform: none;
+  letter-spacing: 0.025em;
 }
 
 .message-form button:hover {
-  background-color: #535bf2;
+  background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(249, 115, 22, 0.4);
+}
+
+.message-form button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
 }
 
 .message-form button:disabled {
-  background-color: #ccc;
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
   cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .auth-container {
-  max-width: 420px;
+  max-width: 480px;
   margin: 2rem auto;
-  padding: 3rem 2.5rem;
-  border: none;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  padding: 3.5rem 3rem;
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  border-radius: 24px;
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(20px);
   box-shadow: 
-    0 20px 40px rgba(0, 0, 0, 0.1),
-    0 8px 16px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    0 25px 50px -12px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(71, 85, 105, 0.1),
+    inset 0 1px 0 rgba(248, 250, 252, 0.1);
   text-align: center;
   position: relative;
   overflow: hidden;
 }
 
-
-.auth-container h2 {
-  margin-bottom: 2rem;
-  color: #2c3e50;
-  font-size: 1.75rem;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+.auth-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #f97316, transparent);
 }
 
-/* Enhanced FirebaseUI styling for aesthetics and visibility */
+.auth-container h2 {
+  margin-bottom: 2.5rem;
+  color: #f8fafc;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Modern Dark Theme FirebaseUI Styling */
 .firebaseui-container {
   background: transparent !important;
   padding: 0 !important;
@@ -117,21 +214,23 @@
 
 .firebaseui-card-content {
   background: transparent !important;
-  color: #2c3e50 !important;
+  color: #f8fafc !important;
   padding: 0 !important;
 }
 
 .firebaseui-title {
-  color: #2c3e50 !important;
-  font-size: 1.1rem !important;
-  font-weight: 600 !important;
+  color: #f8fafc !important;
+  font-size: 1.2rem !important;
+  font-weight: 700 !important;
   margin-bottom: 1.5rem !important;
+  text-align: center !important;
 }
 
 .firebaseui-subtitle {
-  color: #6c757d !important;
-  font-size: 0.9rem !important;
-  margin-bottom: 1.5rem !important;
+  color: #94a3b8 !important;
+  font-size: 1rem !important;
+  margin-bottom: 2rem !important;
+  text-align: center !important;
 }
 
 .firebaseui-form-list {
@@ -140,111 +239,172 @@
 }
 
 .firebaseui-form-list .firebaseui-form-item {
-  margin-bottom: 1.25rem !important;
+  margin-bottom: 1.5rem !important;
 }
 
 .firebaseui-input {
-  background: #ffffff !important;
-  color: #2c3e50 !important;
-  border: 2px solid #e9ecef !important;
+  background: rgba(30, 41, 59, 0.6) !important;
+  color: #f8fafc !important;
+  border: 2px solid rgba(71, 85, 105, 0.4) !important;
   border-radius: 12px !important;
-  padding: 0.875rem 1rem !important;
+  padding: 1rem 1.25rem !important;
   font-size: 1rem !important;
   font-weight: 400 !important;
-  transition: all 0.3s ease !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  backdrop-filter: blur(10px) !important;
 }
 
 .firebaseui-input:focus {
-  border-color: #007bff !important;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1) !important;
+  border-color: #f97316 !important;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1) !important;
   outline: none !important;
+  background: rgba(30, 41, 59, 0.8) !important;
 }
 
 .firebaseui-input:hover {
-  border-color: #ced4da !important;
+  border-color: rgba(71, 85, 105, 0.6) !important;
 }
 
 .firebaseui-button {
-  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
   color: white !important;
   border: none !important;
-  border-radius: 12px !important;
-  padding: 0.875rem 2rem !important;
-  font-size: 1rem !important;
+  border-radius: 8px !important;
+  padding: 0.75rem 1.5rem !important;
+  font-size: 0.95rem !important;
   font-weight: 600 !important;
   text-transform: none !important;
-  letter-spacing: 0.3px !important;
-  transition: all 0.3s ease !important;
-  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3) !important;
-  min-height: 48px !important;
+  letter-spacing: 0.025em !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3) !important;
+  min-height: 40px !important;
+  width: 100% !important;
 }
 
 .firebaseui-button:hover {
-  background: linear-gradient(135deg, #0056b3 0%, #004085 100%) !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 6px 16px rgba(0, 123, 255, 0.4) !important;
+  background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(249, 115, 22, 0.4) !important;
 }
 
 .firebaseui-button:active {
   transform: translateY(0) !important;
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3) !important;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3) !important;
 }
 
 .firebaseui-link {
-  color: #007bff !important;
+  color: #f97316 !important;
   text-decoration: none !important;
   font-weight: 500 !important;
-  transition: color 0.3s ease !important;
+  transition: color 0.2s ease !important;
 }
 
 .firebaseui-link:hover {
-  color: #0056b3 !important;
+  color: #ea580c !important;
   text-decoration: underline !important;
 }
 
 .firebaseui-textfield {
-  background: #ffffff !important;
-  color: #2c3e50 !important;
-  border: 2px solid #e9ecef !important;
+  background: rgba(30, 41, 59, 0.6) !important;
+  color: #f8fafc !important;
+  border: 2px solid rgba(71, 85, 105, 0.4) !important;
   border-radius: 12px !important;
-  padding: 0.875rem 1rem !important;
+  padding: 1rem 1.25rem !important;
   font-size: 1rem !important;
-  transition: all 0.3s ease !important;
+  transition: all 0.2s ease !important;
+  backdrop-filter: blur(10px) !important;
 }
 
 .firebaseui-textfield:focus {
-  border-color: #007bff !important;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1) !important;
+  border-color: #f97316 !important;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1) !important;
   outline: none !important;
+  background: rgba(30, 41, 59, 0.8) !important;
 }
 
 .firebaseui-label {
-  color: #495057 !important;
-  font-weight: 500 !important;
-  font-size: 0.9rem !important;
-  margin-bottom: 0.5rem !important;
+  color: #e2e8f0 !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  margin-bottom: 0.75rem !important;
   display: block !important;
 }
 
 /* Error message styling */
 .firebaseui-error {
-  background: #f8d7da !important;
-  color: #721c24 !important;
-  border: 1px solid #f5c6cb !important;
-  border-radius: 8px !important;
-  padding: 0.75rem !important;
-  margin-bottom: 1rem !important;
-  font-size: 0.9rem !important;
+  background: rgba(220, 38, 38, 0.1) !important;
+  color: #fca5a5 !important;
+  border: 1px solid rgba(220, 38, 38, 0.2) !important;
+  border-radius: 12px !important;
+  padding: 1rem !important;
+  margin-bottom: 1.5rem !important;
+  font-size: 0.95rem !important;
+  backdrop-filter: blur(10px) !important;
 }
 
 /* Success message styling */
 .firebaseui-success {
-  background: #d4edda !important;
-  color: #155724 !important;
-  border: 1px solid #c3e6cb !important;
-  border-radius: 8px !important;
-  padding: 0.75rem !important;
-  margin-bottom: 1rem !important;
+  background: rgba(34, 197, 94, 0.1) !important;
+  color: #86efac !important;
+  border: 1px solid rgba(34, 197, 94, 0.2) !important;
+  border-radius: 12px !important;
+  padding: 1rem !important;
+  margin-bottom: 1.5rem !important;
+  font-size: 0.95rem !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+/* Loading state */
+.firebaseui-loading {
+  color: #94a3b8 !important;
+  text-align: center !important;
+  padding: 2rem !important;
+}
+
+/* Toggle between sign in/sign up */
+.firebaseui-tospp-full-message {
+  color: #94a3b8 !important;
   font-size: 0.9rem !important;
+  margin-top: 1.5rem !important;
+  text-align: center !important;
+}
+
+.firebaseui-tospp-full-message a {
+  color: #f97316 !important;
+  text-decoration: none !important;
+}
+
+.firebaseui-tospp-full-message a:hover {
+  color: #ea580c !important;
+  text-decoration: underline !important;
+}
+
+/* Fix red bubble/error indicator issues */
+.firebaseui-error-message {
+  display: none !important;
+}
+
+.firebaseui-error {
+  display: none !important;
+}
+
+.firebaseui-error-message-wrapper {
+  display: none !important;
+}
+
+/* Hide any red error indicators */
+.firebaseui-form-item .firebaseui-error {
+  display: none !important;
+}
+
+/* Ensure clean input styling */
+.firebaseui-input:invalid {
+  border-color: rgba(71, 85, 105, 0.4) !important;
+  box-shadow: none !important;
+}
+
+.firebaseui-input:invalid:focus {
+  border-color: #f97316 !important;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1) !important;
 }
