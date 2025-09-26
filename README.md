@@ -1,39 +1,46 @@
 # Stillwater Today
 
-A modern React application with Firebase integration and automated CI/CD deployment pipeline. This project demonstrates a complete full-stack web application with message submission functionality, real-time database storage, and production-ready deployment workflows.
+A modern React application with Firebase integration and automated CI/CD deployment pipeline. This project demonstrates a complete full-stack web application with user authentication, message submission functionality, real-time database storage, and production-ready deployment workflows.
 
 ## 🚀 Features
 
 - **React 19** with TypeScript for type-safe development
 - **Firebase Integration** with Firestore database, Authentication, Storage, and Analytics
+- **User Authentication** with email/password sign-in and account creation
+- **Modern Dark UI** with glassmorphism effects and orange accents
 - **Automated CI/CD Pipeline** with GitHub Actions
 - **Multi-Environment Deployments** (Staging & Production)
-- **Modern UI** with responsive design and loading states
+- **User-Friendly Error Messages** with production-ready feedback
 - **Code Quality** with ESLint, TypeScript strict mode, and proper error handling
 
 ## 📋 What This App Does
 
-This application provides a simple message submission form that:
-1. Accepts user input through a clean, accessible form
-2. Validates and submits messages to Firebase Firestore
-3. Provides real-time feedback on submission status
-4. Stores messages with timestamps for future retrieval
+This application provides a complete user experience that:
+1. **User Authentication**: Secure sign-in and account creation with password policies
+2. **Message Submission**: Authenticated users can submit messages to Firebase Firestore
+3. **Real-time Feedback**: Immediate status updates and user-friendly error messages
+4. **Data Storage**: Messages are stored with timestamps and user association
+5. **Modern UI**: Beautiful dark theme with responsive design and smooth animations
 
 ## 🏗️ Architecture
 
 ```
 ├── src/
-│   ├── components/          # Reusable UI components (future)
-│   ├── firebase/           # Firebase configuration and services
-│   │   ├── config.ts       # Firebase app initialization
-│   │   ├── firestore.ts    # Firestore database instance
-│   │   ├── auth.ts         # Authentication service
-│   │   ├── storage.ts      # Cloud Storage service
-│   │   └── index.ts        # Centralized exports
-│   ├── pages/              # Application pages/views
-│   │   └── Home.tsx        # Main message submission page
-│   ├── App.tsx             # Root application component
-│   └── main.tsx            # Application entry point
+│   ├── components/          # Reusable UI components
+│   │   └── Auth.tsx         # Authentication form component
+│   ├── contexts/            # React context providers
+│   │   └── AuthContext.tsx  # User authentication state management
+│   ├── firebase/            # Firebase configuration and services
+│   │   ├── config.ts        # Firebase app initialization
+│   │   ├── firestore.ts     # Firestore database instance
+│   │   ├── auth.ts          # Firebase Auth instance
+│   │   ├── authService.ts   # Authentication service functions
+│   │   ├── storage.ts       # Cloud Storage service
+│   │   └── index.ts         # Centralized exports
+│   ├── pages/               # Application pages/views
+│   │   └── Home.tsx         # Main message submission page
+│   ├── App.tsx              # Root application component
+│   └── main.tsx             # Application entry point
 ├── .github/workflows/      # CI/CD automation
 │   ├── ci.yml              # Code quality and build checks
 │   ├── deploy-staging.yml  # Staging environment deployment
@@ -148,9 +155,10 @@ This project uses automated deployment with GitHub Actions:
 
 1. Create a Firebase project at https://console.firebase.google.com
 2. Enable Firestore Database
-3. Enable Authentication (optional, for future features)
-4. Enable Analytics (optional)
-5. Get your configuration from Project Settings
+3. Enable Authentication with Email/Password provider
+4. Configure password policy in Authentication settings
+5. Enable Analytics (optional)
+6. Get your configuration from Project Settings
 
 ### Environment Variables
 
@@ -168,10 +176,21 @@ Messages are stored in Firestore with the following structure:
 interface Message {
   text: string;           // The user's message
   createdAt: Date;        // Timestamp of submission
+  userId?: string;        // Associated user ID (if authenticated)
 }
 ```
 
 Collection: `messages`
+
+## 🔐 Authentication
+
+The application includes a complete authentication system:
+
+- **Sign In**: Existing users can sign in with email and password
+- **Sign Up**: New users can create accounts with email and password
+- **Password Policy**: Enforced through Firebase Authentication
+- **User State**: Managed through React Context for app-wide access
+- **Error Handling**: User-friendly error messages for all authentication scenarios
 
 ## 🧪 Testing
 
@@ -220,12 +239,13 @@ If you encounter any issues:
 
 ## 🚀 Future Enhancements
 
-- User authentication and profiles
 - Message editing and deletion
 - Real-time message updates
 - Message categories and filtering
+- User profiles and settings
 - Admin dashboard
 - Mobile app with React Native
+- Social features (likes, comments)
 
 ---
 
