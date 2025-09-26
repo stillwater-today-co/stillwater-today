@@ -1,11 +1,23 @@
 import React, { useRef, useState } from 'react'
 import { collection, addDoc } from 'firebase/firestore'
+import { signOut } from 'firebase/auth'
 import { firestore } from '../firebase/firestore'
+import { auth } from '../firebase/auth'
+import { useAuth } from '../contexts/AuthContext'
 
 const Home = () => {
+  const { user } = useAuth()
   const messageRef = useRef<HTMLInputElement>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth)
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,7 +57,13 @@ const Home = () => {
   return (
     <div className="message-form">
       <h1>Stillwater Today</h1>
-      <p>Submit a message to our Firebase database:</p>
+      <div className="user-info">
+        <span className="welcome">Welcome, {user?.displayName || user?.email || 'User'}!</span>
+        <button className="sign-out-btn" onClick={handleSignOut}>
+          Sign Out
+        </button>
+      </div>
+      <p className="description">Submit a message to our Firebase database:</p>
       
       <form onSubmit={handleSubmit}>
         <label htmlFor="message">Your Message</label>
