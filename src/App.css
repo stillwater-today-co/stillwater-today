@@ -206,205 +206,127 @@
   background-clip: text;
 }
 
-/* Modern Dark Theme FirebaseUI Styling */
-.firebaseui-container {
-  background: transparent !important;
-  padding: 0 !important;
+/* New Auth Form Styles */
+.auth-form-group {
+  margin-bottom: 1.5rem;
 }
 
-.firebaseui-card-content {
-  background: transparent !important;
-  color: #f8fafc !important;
-  padding: 0 !important;
+.auth-form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #e2e8f0;
+  font-weight: 600;
+  font-size: 0.95rem;
 }
 
-.firebaseui-title {
-  color: #f8fafc !important;
-  font-size: 1.2rem !important;
-  font-weight: 700 !important;
-  margin-bottom: 1.5rem !important;
-  text-align: center !important;
+.auth-form-group input {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border: 2px solid rgba(71, 85, 105, 0.4);
+  border-radius: 12px;
+  font-size: 1rem;
+  background: rgba(30, 41, 59, 0.6);
+  color: #f8fafc;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  box-sizing: border-box;
 }
 
-.firebaseui-subtitle {
-  color: #94a3b8 !important;
-  font-size: 1rem !important;
-  margin-bottom: 2rem !important;
-  text-align: center !important;
+.auth-form-group input:focus {
+  outline: none;
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+  background: rgba(30, 41, 59, 0.8);
 }
 
-.firebaseui-form-list {
-  background: transparent !important;
-  margin: 0 !important;
+.auth-form-group input:hover {
+  border-color: rgba(71, 85, 105, 0.6);
 }
 
-.firebaseui-form-list .firebaseui-form-item {
-  margin-bottom: 1.5rem !important;
+.auth-form-group input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.firebaseui-input {
-  background: rgba(30, 41, 59, 0.6) !important;
-  color: #f8fafc !important;
-  border: 2px solid rgba(71, 85, 105, 0.4) !important;
-  border-radius: 12px !important;
-  padding: 1rem 1.25rem !important;
-  font-size: 1rem !important;
-  font-weight: 400 !important;
-  transition: all 0.2s ease !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-  backdrop-filter: blur(10px) !important;
+.auth-submit-btn {
+  width: 100%;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+  text-transform: none;
+  letter-spacing: 0.025em;
+  margin-bottom: 1.5rem;
 }
 
-.firebaseui-input:focus {
-  border-color: #f97316 !important;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1) !important;
-  outline: none !important;
-  background: rgba(30, 41, 59, 0.8) !important;
+.auth-submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(249, 115, 22, 0.4);
 }
 
-.firebaseui-input:hover {
-  border-color: rgba(71, 85, 105, 0.6) !important;
+.auth-submit-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
 }
 
-.firebaseui-button {
-  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
-  color: white !important;
-  border: none !important;
-  border-radius: 8px !important;
-  padding: 0.75rem 1.5rem !important;
-  font-size: 0.95rem !important;
-  font-weight: 600 !important;
-  text-transform: none !important;
-  letter-spacing: 0.025em !important;
-  transition: all 0.2s ease !important;
-  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3) !important;
-  min-height: 40px !important;
-  width: 100% !important;
+.auth-submit-btn:disabled {
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.firebaseui-button:hover {
-  background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 6px 16px rgba(249, 115, 22, 0.4) !important;
+.auth-toggle {
+  text-align: center;
+  margin-bottom: 1.5rem;
 }
 
-.firebaseui-button:active {
-  transform: translateY(0) !important;
-  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3) !important;
+.auth-toggle p {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  margin: 0;
 }
 
-.firebaseui-link {
-  color: #f97316 !important;
-  text-decoration: none !important;
-  font-weight: 500 !important;
-  transition: color 0.2s ease !important;
+.auth-toggle-btn {
+  background: none;
+  border: none;
+  color: #f97316;
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: underline;
+  margin-left: 0.5rem;
+  font-size: 0.95rem;
+  transition: color 0.2s ease;
 }
 
-.firebaseui-link:hover {
-  color: #ea580c !important;
-  text-decoration: underline !important;
+.auth-toggle-btn:hover {
+  color: #ea580c;
 }
 
-.firebaseui-textfield {
-  background: rgba(30, 41, 59, 0.6) !important;
-  color: #f8fafc !important;
-  border: 2px solid rgba(71, 85, 105, 0.4) !important;
-  border-radius: 12px !important;
-  padding: 1rem 1.25rem !important;
-  font-size: 1rem !important;
-  transition: all 0.2s ease !important;
-  backdrop-filter: blur(10px) !important;
+.auth-result {
+  padding: 1rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  text-align: center;
+  margin-top: 1rem;
 }
 
-.firebaseui-textfield:focus {
-  border-color: #f97316 !important;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1) !important;
-  outline: none !important;
-  background: rgba(30, 41, 59, 0.8) !important;
+.auth-result.success {
+  background: rgba(34, 197, 94, 0.1);
+  color: #86efac;
+  border: 1px solid rgba(34, 197, 94, 0.2);
 }
 
-.firebaseui-label {
-  color: #e2e8f0 !important;
-  font-weight: 600 !important;
-  font-size: 1rem !important;
-  margin-bottom: 0.75rem !important;
-  display: block !important;
+.auth-result.error {
+  background: rgba(220, 38, 38, 0.1);
+  color: #fca5a5;
+  border: 1px solid rgba(220, 38, 38, 0.2);
 }
 
-/* Error message styling */
-.firebaseui-error {
-  background: rgba(220, 38, 38, 0.1) !important;
-  color: #fca5a5 !important;
-  border: 1px solid rgba(220, 38, 38, 0.2) !important;
-  border-radius: 12px !important;
-  padding: 1rem !important;
-  margin-bottom: 1.5rem !important;
-  font-size: 0.95rem !important;
-  backdrop-filter: blur(10px) !important;
-}
-
-/* Success message styling */
-.firebaseui-success {
-  background: rgba(34, 197, 94, 0.1) !important;
-  color: #86efac !important;
-  border: 1px solid rgba(34, 197, 94, 0.2) !important;
-  border-radius: 12px !important;
-  padding: 1rem !important;
-  margin-bottom: 1.5rem !important;
-  font-size: 0.95rem !important;
-  backdrop-filter: blur(10px) !important;
-}
-
-/* Loading state */
-.firebaseui-loading {
-  color: #94a3b8 !important;
-  text-align: center !important;
-  padding: 2rem !important;
-}
-
-/* Toggle between sign in/sign up */
-.firebaseui-tospp-full-message {
-  color: #94a3b8 !important;
-  font-size: 0.9rem !important;
-  margin-top: 1.5rem !important;
-  text-align: center !important;
-}
-
-.firebaseui-tospp-full-message a {
-  color: #f97316 !important;
-  text-decoration: none !important;
-}
-
-.firebaseui-tospp-full-message a:hover {
-  color: #ea580c !important;
-  text-decoration: underline !important;
-}
-
-/* Fix red bubble/error indicator issues */
-.firebaseui-error-message {
-  display: none !important;
-}
-
-.firebaseui-error {
-  display: none !important;
-}
-
-.firebaseui-error-message-wrapper {
-  display: none !important;
-}
-
-/* Hide any red error indicators */
-.firebaseui-form-item .firebaseui-error {
-  display: none !important;
-}
-
-/* Ensure clean input styling */
-.firebaseui-input:invalid {
-  border-color: rgba(71, 85, 105, 0.4) !important;
-  box-shadow: none !important;
-}
-
-.firebaseui-input:invalid:focus {
-  border-color: #f97316 !important;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1) !important;
-}

@@ -2,7 +2,6 @@ import './App.css'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Auth from './components/Auth'
 import Home from './pages/Home'
-import DebugAuth from './components/DebugAuth'
 
 function AppContent() {
   const { user, loading } = useAuth()
@@ -20,7 +19,6 @@ function AppContent() {
   return (
     <div className="App">
       {user ? <Home /> : <Auth />}
-      <DebugAuth />
     </div>
   )
 }
