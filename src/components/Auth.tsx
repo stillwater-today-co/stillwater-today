@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { signInUser, createUser } from '../firebase/authService'
+import { signInUser, createUser, resetPassword } from '../firebase/authService'
 
 const Auth: React.FC = () => {
   const [email, setEmail] = useState('')
@@ -7,6 +7,8 @@ const Auth: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<string>('')
   const [isSignUp, setIsSignUp] = useState(false)
+  const [showPasswordReset, setShowPasswordReset] = useState(false)
+  const [passwordResetLoading, setPasswordResetLoading] = useState(false)
 
   const handleSignIn = async () => {
     if (!email || !password) {
@@ -23,7 +25,13 @@ const Auth: React.FC = () => {
       setResult('✅ Sign-in successful!')
       // The AuthContext will automatically handle the state change
     } else {
-      setResult(`❌ ${result.error?.userMessage || 'Sign-in failed. Please try again.'}`)
+      const errorMessage = result.error?.userMessage || 'Sign-in failed. Please try again.'
+      setResult(`❌ ${errorMessage}`)
+      
+      // Show password reset option for specific errors
+      if (result.error?.code === 'auth/wrong-password' || result.error?.code === 'auth/user-not-found') {
+        setShowPasswordReset(true)
+      }
     }
     
     setLoading(false)
@@ -50,9 +58,32 @@ const Auth: React.FC = () => {
     setLoading(false)
   }
 
+  const handlePasswordReset = async () => {
+    if (!email) {
+      setResult('Please enter your email address first')
+      return
+    }
+
+    setPasswordResetLoading(true)
+    setResult('Sending password reset email...')
+    
+    const result = await resetPassword(email)
+    
+    if (result.success) {
+      setResult(`✅ ${result.message}`)
+      setShowPasswordReset(false)
+    } else {
+      setResult(`❌ ${result.error?.userMessage || 'Failed to send password reset email. Please try again.'}`)
+    }
+    
+    setPasswordResetLoading(false)
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    // Only reset password reset state when switching between sign-in and sign-up
     if (isSignUp) {
+      setShowPasswordReset(false)
       handleSignUp()
     } else {
       handleSignIn()
@@ -99,6 +130,30 @@ const Auth: React.FC = () => {
         </button>
       </form>
       
+      {/* Password Reset Section */}
+      {showPasswordReset && !isSignUp && (
+        <div className="password-reset-section">
+          <p className="password-reset-text">
+            Having trouble signing in? We can send you a password reset email.
+          </p>
+          <button
+            type="button"
+            onClick={handlePasswordReset}
+            disabled={passwordResetLoading || !email}
+            className="password-reset-btn"
+          >
+            {passwordResetLoading ? 'Sending...' : 'Send Password Reset Email'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowPasswordReset(false)}
+            className="password-reset-cancel-btn"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+      
       <div className="auth-toggle">
         <p>
           {isSignUp ? "Already have an account?" : "Don't have an account?"}
@@ -107,6 +162,7 @@ const Auth: React.FC = () => {
             onClick={() => {
               setIsSignUp(!isSignUp)
               setResult('')
+              setShowPasswordReset(false)
             }}
             className="auth-toggle-btn"
           >

@@ -82,13 +82,13 @@ const Home = () => {
       </form>
 
       {submitStatus === 'success' && (
-        <p style={{ color: '#4caf50', textAlign: 'center' }}>
+        <p style={{ color: '#86efac', textAlign: 'center' }}>
           ✅ Message sent successfully!
         </p>
       )}
       
       {submitStatus === 'error' && (
-        <p style={{ color: '#f44336', textAlign: 'center' }}>
+        <p style={{ color: '#fca5a5', textAlign: 'center' }}>
           ❌ Failed to send message. Please try again.
         </p>
       )}
