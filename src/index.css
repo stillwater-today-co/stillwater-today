@@ -27,7 +27,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  background: linear-gradient(135deg, #0b0b0b 0%, #111111 50%, #1a1a1a 100%);
   background-attachment: fixed;
 }
 
@@ -45,14 +45,14 @@ button {
   font-size: 1em;
   font-weight: 600;
   font-family: inherit;
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  background: linear-gradient(135deg, #1f1f1f 0%, #0f0f0f 100%);
   color: #e2e8f0;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 button:hover {
-  background: linear-gradient(135deg, #334155 0%, #475569 100%);
+  background: linear-gradient(135deg, #151515 0%, #0a0a0a 100%);
   transform: translateY(-1px);
   box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.15);
 }
