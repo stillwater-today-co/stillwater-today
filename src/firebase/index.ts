@@ -1,5 +1,4 @@
-export { app, analytics } from './config'
+export { app } from './config'
 export { firestore } from './firestore'
 export { auth } from './auth'
-export { storage } from './storage'
-export { signInUser, createUser } from './authService'
+export { signInUser, createUser, resetPassword } from './authService'

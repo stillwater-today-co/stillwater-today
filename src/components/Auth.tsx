@@ -119,6 +119,18 @@ const Auth: React.FC = () => {
             required
             disabled={loading}
           />
+          {!isSignUp && (
+            <div className="forgot-password-link">
+              <button
+                type="button"
+                onClick={() => setShowPasswordReset(true)}
+                className="forgot-password-btn"
+                disabled={loading}
+              >
+                Forgot Password?
+              </button>
+            </div>
+          )}
         </div>
         
         <button

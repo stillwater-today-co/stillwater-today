@@ -9,7 +9,7 @@ function AppContent() {
   if (loading) {
     return (
       <div className="App">
-        <div style={{ textAlign: 'center', padding: '2rem' }}>
+        <div className="loading-container">
           <p>Loading...</p>
         </div>
       </div>
