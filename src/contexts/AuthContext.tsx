@@ -12,7 +12,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true
 })
 
-export const useAuth = () => {
+export function useAuth() {
   return useContext(AuthContext)
 }
 

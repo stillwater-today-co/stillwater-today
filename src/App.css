@@ -394,3 +394,55 @@
   border-color: rgba(71, 85, 105, 0.5);
 }
 
+/* Forgot Password Link */
+.forgot-password-link {
+  margin-top: 0.5rem;
+  text-align: right;
+}
+
+.forgot-password-btn {
+  background: none;
+  border: none;
+  color: #60a5fa;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.forgot-password-btn:hover:not(:disabled) {
+  color: #93c5fd;
+  text-decoration: none;
+}
+
+.forgot-password-btn:disabled {
+  color: #64748b;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+/* Message Status Styles */
+.success-message {
+  color: #86efac;
+  text-align: center;
+  margin-top: 1rem;
+  font-weight: 500;
+}
+
+.error-message {
+  color: #fca5a5;
+  text-align: center;
+  margin-top: 1rem;
+  font-weight: 500;
+}
+
+/* Loading Styles */
+.loading-container {
+  text-align: center;
+  padding: 2rem;
+  color: #cbd5e1;
+  font-size: 1.1rem;
+}
+
