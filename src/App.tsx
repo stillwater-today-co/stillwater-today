@@ -1,5 +1,6 @@
 import './App.css'
-import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { AuthProvider } from './contexts/AuthContext.tsx'
+import { useAuth } from './hooks/useAuth'
 import Auth from './components/Auth'
 import Home from './pages/Home'
 

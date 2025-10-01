@@ -3,7 +3,7 @@ import { collection, addDoc } from 'firebase/firestore'
 import { signOut } from 'firebase/auth'
 import { firestore } from '../firebase/firestore'
 import { auth } from '../firebase/auth'
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from '../hooks/useAuth'
 
 const Home = () => {
   const { user } = useAuth()
@@ -82,21 +82,13 @@ const Home = () => {
       </form>
 
       {submitStatus === 'success' && (
-<<<<<<< HEAD
-        <p style={{ color: '#86efac', textAlign: 'center' }}>
-=======
         <p className="success-message">
->>>>>>> develop
           ✅ Message sent successfully!
         </p>
       )}
       
       {submitStatus === 'error' && (
-<<<<<<< HEAD
-        <p style={{ color: '#fca5a5', textAlign: 'center' }}>
-=======
         <p className="error-message">
->>>>>>> develop
           ❌ Failed to send message. Please try again.
         </p>
       )}
