@@ -1,22 +1,28 @@
 // weather.js
 import {
-    addDoc,
-    collection,
-    deleteDoc,
-    doc,
-    getDoc,
-    getDocs,
-    getFirestore,
-    serverTimestamp,
-    updateDoc
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  serverTimestamp,
+  updateDoc
 } from "firebase/firestore";
-import app from "./firebase.js";
+import { db } from "./firebase";
 
-const db = getFirestore(app);
 const weatherCollection = collection(db, "weather");
 
+export interface WeatherData {
+  humidity: number;
+  condition: string;
+  city: string;
+  state: string;
+  temperature: number;
+}
+
 // CREATE - add a new weather entry
-export async function addWeather({ humidity, condition, city, state, temperature }) {
+export async function addWeather({ humidity, condition, city, state, temperature }: WeatherData): Promise<string | undefined> {
   try {
     const docRef = await addDoc(weatherCollection, {
       "%humidity": humidity,
@@ -46,7 +52,7 @@ export async function getAllWeather() {
 }
 
 // READ - get a single weather entry by ID
-export async function getWeatherById(id) {
+export async function getWeatherById(id: string) {
   try {
     const docRef = doc(db, "weather", id);
     const snapshot = await getDoc(docRef);
@@ -61,7 +67,7 @@ export async function getWeatherById(id) {
 }
 
 // UPDATE - update a weather entry
-export async function updateWeather(id, updatedData) {
+export async function updateWeather(id: string, updatedData: Partial<WeatherData>) {
   try {
     const docRef = doc(db, "weather", id);
     await updateDoc(docRef, updatedData);
@@ -72,7 +78,7 @@ export async function updateWeather(id, updatedData) {
 }
 
 // DELETE - delete a weather entry
-export async function deleteWeather(id) {
+export async function deleteWeather(id: string) {
   try {
     const docRef = doc(db, "weather", id);
     await deleteDoc(docRef);
