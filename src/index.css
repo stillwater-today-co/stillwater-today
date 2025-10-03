@@ -5,7 +5,7 @@
 
   color-scheme: dark;
   color: #e2e8f0;
-  background-color: #0f172a;
+  background-color: #0a0a0a;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -25,10 +25,21 @@ a:hover {
 
 body {
   margin: 0;
+  padding: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #0b0b0b 0%, #111111 50%, #1a1a1a 100%);
+  background: #0a0a0a;
   background-attachment: fixed;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 }
 
 h1 {
