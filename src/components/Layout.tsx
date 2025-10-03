@@ -16,19 +16,21 @@ const Layout: React.FC = () => {
       {/* Sidebar */}
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       
+      {/* Menu Toggle - Fixed Position */}
+      <button 
+        className="menu-toggle-fixed"
+        onClick={toggleSidebar}
+        aria-label="Toggle menu"
+      >
+        <span className="hamburger"></span>
+        <span className="hamburger"></span>
+        <span className="hamburger"></span>
+      </button>
+
       {/* Main Content */}
       <div className={`main-content ${sidebarOpen ? 'sidebar-open' : ''}`}>
-        {/* Header with menu button */}
-        <header className="main-header">
-          <button 
-            className="menu-toggle"
-            onClick={toggleSidebar}
-            aria-label="Toggle menu"
-          >
-            <span className="hamburger"></span>
-            <span className="hamburger"></span>
-            <span className="hamburger"></span>
-          </button>
+        {/* Static Header */}
+        <header className="static-header">
           <h1 className="page-title">Stillwater Today</h1>
         </header>
 
