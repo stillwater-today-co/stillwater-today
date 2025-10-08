@@ -1,8 +1,14 @@
 // src/briefings.js
 import { addDoc, collection, deleteDoc, doc, getDocs, updateDoc } from "firebase/firestore";
-import { db } from "./config"; // make sure config.ts exports `db`
+import { db } from "./firebase"; // make sure config.ts exports `db`
 
 const briefingsCol = collection(db, "briefings");
+
+interface BriefingData {
+  date: string;
+  summaryText: string;
+  // add other fields as needed
+}
 
 /**
  * Get all briefings
@@ -17,7 +23,8 @@ export async function getAllBriefings() {
  * @param {Object} briefingData
  *   { date: "YYYY-MM-DD", summaryText: "..." }
  */
-export async function addBriefing(briefingData) {
+
+export async function addBriefing(briefingData: BriefingData) {
   return await addDoc(briefingsCol, {
     ...briefingData,
     createdAt: new Date() // auto timestamp
@@ -27,7 +34,7 @@ export async function addBriefing(briefingData) {
 /**
  * Update a briefing by id
  */
-export async function updateBriefing(id, briefingData) {
+export async function updateBriefing(id: string, briefingData: BriefingData) {
   const briefingRef = doc(db, "briefings", id);
   return await updateDoc(briefingRef, {
     ...briefingData,
@@ -38,7 +45,7 @@ export async function updateBriefing(id, briefingData) {
 /**
  * Delete a briefing by id
  */
-export async function deleteBriefing(id) {
+export async function deleteBriefing(id: string) {
   const briefingRef = doc(db, "briefings", id);
   return await deleteDoc(briefingRef);
 }
