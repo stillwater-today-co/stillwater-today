@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
-import Sidebar from './Sidebar'
 import AISummary from './AISummary'
-import Weather from './Weather'
 import EventsSection from './EventsSection'
+import Sidebar from './Sidebar'
+import Weather from './Weather'
 
 const Layout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -16,17 +16,17 @@ const Layout: React.FC = () => {
       {/* Sidebar */}
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       
-      {/* Menu Toggle - Fixed Position */}
-      <button 
-        className="menu-toggle-fixed"
-        onClick={toggleSidebar}
-        aria-label="Toggle menu"
-      >
-        <span className="hamburger"></span>
-        <span className="hamburger"></span>
-        <span className="hamburger"></span>
-      </button>
-
+      {!sidebarOpen && (
+        <button 
+          className="menu-toggle-fixed"
+          onClick={toggleSidebar}
+          aria-label="Toggle menu"
+        >
+          <span className="hamburger"></span>
+          <span className="hamburger"></span>
+          <span className="hamburger"></span>
+        </button>
+      )}
       {/* Main Content */}
       <div className={`main-content ${sidebarOpen ? 'sidebar-open' : ''}`}>
         {/* Static Header */}

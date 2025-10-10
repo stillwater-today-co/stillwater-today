@@ -1,4 +1,6 @@
-import React, { useState } from 'react'
+import { signOut } from 'firebase/auth';
+import React, { useState } from 'react';
+import { auth } from '../firebase/auth'; // Adjust the import path as necessary
 
 interface SidebarProps {
   isOpen: boolean
@@ -35,11 +37,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     }
   }
 
-  const handleSignOut = () => {
-    // This would typically call a sign out function from your auth context
-    console.log('Sign out clicked')
-    onClose()
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth)
+      onClose()
+    }
+    catch (error) {
+      console.error("Error signing out:", error)
+    }
   }
+  
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-header">
