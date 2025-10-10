@@ -1024,6 +1024,42 @@
   line-height: 1.5;
 }
 
+/* Weather error styles */
+.weather-error {
+  text-align: center;
+  color: #fca5a5;
+  padding: 2rem;
+}
+
+.weather-error .error-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.weather-error h3 {
+  color: #fca5a5;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.weather-error p {
+  color: #94a3b8;
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.weather-error-banner {
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  color: #fca5a5;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
 /* ========================================
    EVENTS SECTION STYLES
 ======================================== */
