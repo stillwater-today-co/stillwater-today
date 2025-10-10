@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
-import { signInUser, createUser, resetPassword } from '../firebase/authService'
+import { CheckCircle, XCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { createUser, resetPassword, signInUser } from '../firebase/authService';
 
 const Auth: React.FC = () => {
   const [email, setEmail] = useState('')
@@ -9,6 +10,8 @@ const Auth: React.FC = () => {
   const [isSignUp, setIsSignUp] = useState(false)
   const [showPasswordReset, setShowPasswordReset] = useState(false)
   const [passwordResetLoading, setPasswordResetLoading] = useState(false)
+  const [resetEmail, setResetEmail] = useState('')
+
 
   const handleSignIn = async () => {
     if (!email || !password) {
@@ -22,16 +25,13 @@ const Auth: React.FC = () => {
     const result = await signInUser(email, password)
     
     if (result.success) {
-      setResult('✅ Sign-in successful!')
+      setResult('SIGNIN_SUCCESS')
       // The AuthContext will automatically handle the state change
     } else {
       const errorMessage = result.error?.userMessage || 'Sign-in failed. Please try again.'
-      setResult(`❌ ${errorMessage}`)
-      
-      // Show password reset option for specific errors
-      if (result.error?.code === 'auth/wrong-password' || result.error?.code === 'auth/user-not-found') {
-        setShowPasswordReset(true)
-      }
+      setResult(`SIGNIN_ERROR:${errorMessage}`)
+      // Show password reset option for any sign-in error
+      setShowPasswordReset(true)
     }
     
     setLoading(false)
@@ -49,33 +49,30 @@ const Auth: React.FC = () => {
     const result = await createUser(email, password)
     
     if (result.success) {
-      setResult('✅ Account created successfully! You are now signed in.')
+      setResult('SIGNUP_SUCCESS')
       // The AuthContext will automatically handle the state change
     } else {
-      setResult(`❌ ${result.error?.userMessage || 'Account creation failed. Please try again.'}`)
+      setResult(`SIGNUP_ERROR:${result.error?.userMessage || 'Account creation failed. Please try again.'}`)
     }
     
     setLoading(false)
   }
 
   const handlePasswordReset = async () => {
-    if (!email) {
-      setResult('Please enter your email address first')
+    if (!resetEmail) {
+      setResult('Please enter your email address')
       return
     }
-
     setPasswordResetLoading(true)
     setResult('Sending password reset email...')
-    
-    const result = await resetPassword(email)
-    
+    const result = await resetPassword(resetEmail)
     if (result.success) {
-      setResult(`✅ ${result.message}`)
+      setResult('RESET_SUCCESS')
       setShowPasswordReset(false)
+      setResetEmail('')
     } else {
-      setResult(`❌ ${result.error?.userMessage || 'Failed to send password reset email. Please try again.'}`)
+      setResult(`RESET_ERROR:${result.error?.userMessage || 'Failed to send password reset email. Please try again.'}`)
     }
-    
     setPasswordResetLoading(false)
   }
 
@@ -145,20 +142,29 @@ const Auth: React.FC = () => {
       {/* Password Reset Section */}
       {showPasswordReset && !isSignUp && (
         <div className="password-reset-section">
+          <h3>Reset Password</h3>
           <p className="password-reset-text">
-            Having trouble signing in? We can send you a password reset email.
+            Enter your email address to receive a password reset link.
           </p>
+          <input
+            type="email"
+            placeholder="Enter your email"
+            value={resetEmail}
+            onChange={e => setResetEmail(e.target.value)}
+            disabled={passwordResetLoading}
+            className="password-reset-input"
+          />
           <button
             type="button"
             onClick={handlePasswordReset}
-            disabled={passwordResetLoading || !email}
+            disabled={passwordResetLoading || !resetEmail}
             className="password-reset-btn"
           >
             {passwordResetLoading ? 'Sending...' : 'Send Password Reset Email'}
           </button>
           <button
             type="button"
-            onClick={() => setShowPasswordReset(false)}
+            onClick={() => { setShowPasswordReset(false); setResetEmail(''); }}
             className="password-reset-cancel-btn"
           >
             Cancel
@@ -184,8 +190,13 @@ const Auth: React.FC = () => {
       </div>
       
       {result && (
-        <div className={`auth-result ${result.includes('✅') ? 'success' : 'error'}`}>
-          {result}
+        <div className={`auth-result ${result.includes('SUCCESS') ? 'success' : 'error'}`}>
+          {result.startsWith('SIGNIN_SUCCESS') && <><CheckCircle color="#22c55e" size={18} style={{marginRight: 4}} />Sign-in successful!</>}
+          {result.startsWith('SIGNIN_ERROR:') && <><XCircle color="#ef4444" size={18} style={{marginRight: 4}} />{result.replace('SIGNIN_ERROR:', '')}</>}
+          {result.startsWith('SIGNUP_SUCCESS') && <><CheckCircle color="#22c55e" size={18} style={{marginRight: 4}} />Account created successfully! You are now signed in.</>}
+          {result.startsWith('SIGNUP_ERROR:') && <><XCircle color="#ef4444" size={18} style={{marginRight: 4}} />{result.replace('SIGNUP_ERROR:', '')}</>}
+          {result.startsWith('RESET_SUCCESS') && <><CheckCircle color="#22c55e" size={18} style={{marginRight: 4}} />Password reset email sent</>}
+          {result.startsWith('RESET_ERROR:') && <><XCircle color="#ef4444" size={18} style={{marginRight: 4}} />{result.replace('RESET_ERROR:', '')}</>}
         </div>
       )}
     </div>

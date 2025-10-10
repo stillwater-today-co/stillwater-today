@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react'
-import { fetchWeatherData, getCachedWeather, hasCachedWeather } from '../services/weatherService'
+import { AlertTriangle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { fetchWeatherData, getCachedWeather, hasCachedWeather } from '../services/weatherService';
 
 interface WeatherData {
   current: {
@@ -90,7 +91,7 @@ const Weather: React.FC = () => {
       <div className="weather-content">
         {error && !weatherData ? (
           <div className="weather-error">
-            <div className="error-icon">⚠️</div>
+            <div className="error-icon"><AlertTriangle color="#f59e42" size={20} /></div>
             <h3>Weather Unavailable</h3>
             <p>{error}</p>
             <button className="refresh-btn" onClick={handleRefresh} disabled={isLoading}>
@@ -106,7 +107,7 @@ const Weather: React.FC = () => {
           <div className="weather-placeholder">
             {error && (
               <div className="weather-error-banner">
-                <span>⚠️ Using cached data: {error}</span>
+                <span><AlertTriangle color="#f59e42" size={16} style={{marginRight: 4}} />Using cached data: {error}</span>
               </div>
             )}
             
