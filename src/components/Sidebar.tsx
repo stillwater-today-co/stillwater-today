@@ -56,7 +56,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             onChange={e => setNotification(e.target.value)}
           >
             <option value="all">All</option>
-            <option value="summary">Summary</option>
+            <option value="A.I. summary">Summary</option>
             <option value="weather">Weather</option>
             <option value="events">Events</option>
             <option value="none">None</option>
