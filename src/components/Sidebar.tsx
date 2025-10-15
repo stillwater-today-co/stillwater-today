@@ -66,12 +66,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         {/* Feedback Section */}
         <div className="sidebar-section">
           <h3>Feedback</h3>
-          <button
+          <a
             className="sidebar-btn"
-            onClick={() => window.open('/feedback', '_blank')}
+            href="/feedback"
+            target="_blank"
+            rel="noopener noreferrer"
           >
             <Mail size={18} style={{marginRight: 6, verticalAlign: 'middle'}} /> Send Feedback
-          </button>
+          </a>
         </div>
 
         {/* Share Site Option */}
