@@ -20,7 +20,7 @@ const Feedback: React.FC = () => {
 
   return (
     <div style={{ minHeight: '100vh', width: '100vw', background: '#ff8800', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ maxWidth: 600, width: '100%', padding: 32, background: 'rgba(255,255,255,0.97)', borderRadius: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.10)' }}>
+      <div style={{ maxWidth: 600, width: '100%', padding: 32, background: 'rgba(255,255,255,0.97)', borderRadius: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <h1 style={{
           fontFamily: 'Montserrat, Arial, sans-serif',
           fontWeight: 800,
@@ -55,9 +55,13 @@ const Feedback: React.FC = () => {
                 fontSize: 18,
                 fontFamily: 'inherit',
                 resize: 'vertical',
-                background: '#fff8f0'
+                background: '#fff8f0',
+                color: '#222',
+                boxSizing: 'border-box',
+                outline: 'none',
+                lineHeight: 1.5
               }}
-              placeholder="Type your feedback here..."
+              placeholder="e.g. Everything is perfect"
               value={message}
               onChange={e => setMessage(e.target.value)}
             />
