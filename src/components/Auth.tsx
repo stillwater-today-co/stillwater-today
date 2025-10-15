@@ -14,6 +14,7 @@ const Auth: React.FC = () => {
 
 
   const handleSignIn = async () => {
+    setShowPasswordReset(false);
     if (!email || !password) {
       setResult('Please enter both email and password')
       return
@@ -30,14 +31,14 @@ const Auth: React.FC = () => {
     } else {
       const errorMessage = result.error?.userMessage || 'Sign-in failed. Please try again.'
       setResult(`SIGNIN_ERROR:${errorMessage}`)
-      // Show password reset option for any sign-in error
-      setShowPasswordReset(true)
+      // Do not show password reset box automatically
     }
     
     setLoading(false)
   }
 
   const handleSignUp = async () => {
+    setShowPasswordReset(false);
     if (!email || !password) {
       setResult('Please enter both email and password')
       return
@@ -119,13 +120,13 @@ const Auth: React.FC = () => {
           {!isSignUp && (
             <div className="forgot-password-link">
               <button
-                type="button"
-                onClick={() => setShowPasswordReset(true)}
-                className="forgot-password-btn"
-                disabled={loading}
-              >
-                Forgot Password?
-              </button>
+                  type="button"
+                  onClick={() => setShowPasswordReset(true)}
+                  className="forgot-password-btn"
+                  disabled={loading}
+                >
+                  Forgot Password?
+                </button>
             </div>
           )}
         </div>
