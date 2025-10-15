@@ -54,7 +54,7 @@ export async function getUser(uid: string) {
 /**
  * Update specific fields for a user.
  */
-export async function updateUser(uid: string, fields: Record<string, any>) {
+export async function updateUser(uid: string, fields: Record<string, unknown>) {
   try {
     const userRef = doc(db, "users", uid);
     await updateDoc(userRef, {

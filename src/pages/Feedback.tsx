@@ -19,30 +19,75 @@ const Feedback: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: 500, margin: '2rem auto', padding: 24, background: '#fff', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-      <h2>Send Feedback to the Dev Team</h2>
-      <textarea
-        style={{ width: '100%', minHeight: 120, marginBottom: 16, padding: 8, borderRadius: 6, border: '1px solid #ccc' }}
-        placeholder="Type your feedback here..."
-        value={message}
-        onChange={e => setMessage(e.target.value)}
-      />
-      <div style={{ display: 'flex', gap: 12 }}>
-        <button
-          onClick={handleSubmitFeedback}
-          style={{ padding: '8px 16px', borderRadius: 6, background: '#f59e42', color: '#fff', border: 'none', cursor: 'pointer' }}
-          disabled={submitStatus === 'submitting'}
-        >
-          {submitStatus === 'submitting' ? 'Sending...' : 'Send Feedback'}
-        </button>
+    <div style={{ minHeight: '100vh', width: '100vw', background: '#ff8800', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ maxWidth: 600, width: '100%', padding: 32, background: 'rgba(255,255,255,0.97)', borderRadius: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.10)' }}>
+        <h1 style={{
+          fontFamily: 'Montserrat, Arial, sans-serif',
+          fontWeight: 800,
+          fontSize: 32,
+          color: '#f59e42',
+          marginBottom: 28,
+          textAlign: 'center',
+          letterSpacing: 1
+        }}>
+          Send Feedback to Dev Team
+        </h1>
+        {submitStatus === 'success' ? (
+          <div style={{
+            color: '#22c55e',
+            fontSize: 32,
+            fontWeight: 700,
+            textAlign: 'center',
+            margin: '48px 0'
+          }}>
+            Thank you for your feedback!
+          </div>
+        ) : (
+          <>
+            <textarea
+              style={{
+                width: '100%',
+                minHeight: 220,
+                marginBottom: 24,
+                padding: 14,
+                borderRadius: 10,
+                border: '2px solid #f59e42',
+                fontSize: 18,
+                fontFamily: 'inherit',
+                resize: 'vertical',
+                background: '#fff8f0'
+              }}
+              placeholder="Type your feedback here..."
+              value={message}
+              onChange={e => setMessage(e.target.value)}
+            />
+            <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+              <button
+                onClick={handleSubmitFeedback}
+                style={{
+                  padding: '12px 32px',
+                  borderRadius: 8,
+                  background: '#f59e42',
+                  color: '#fff',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: 18,
+                  fontWeight: 600,
+                  letterSpacing: 1
+                }}
+                disabled={submitStatus === 'submitting'}
+              >
+                {submitStatus === 'submitting' ? 'Sending...' : 'Send Feedback'}
+              </button>
+            </div>
+            {submitStatus === 'error' && (
+              <div style={{ color: '#ef4444', marginTop: 18, textAlign: 'center', fontSize: 18 }}>
+                Failed to send feedback. Please try again.
+              </div>
+            )}
+          </>
+        )}
       </div>
-      {submitStatus === 'success' && (
-        <div style={{ color: '#22c55e', marginTop: 12 }}>Thank you for your feedback!</div>
-      )}
-      {submitStatus === 'error' && (
-        <div style={{ color: '#ef4444', marginTop: 12 }}>Failed to send feedback. Please try again.</div>
-      )}
-
     </div>
   );
 };
