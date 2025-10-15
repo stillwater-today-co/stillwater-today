@@ -24,7 +24,8 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 
 // Analytics only in the browser
-export let analytics;
+import type { Analytics } from "firebase/analytics";
+export let analytics: Analytics | undefined;
 if (typeof window !== "undefined") {
   analytics = getAnalytics(app);
 }

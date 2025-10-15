@@ -1,7 +1,7 @@
 import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signOut
 } from "firebase/auth";
 import { auth } from "./firebase";
 
@@ -13,8 +13,8 @@ async function register(email: string, password: string) {
     console.log("User registered:", userCredential.user);
     return userCredential.user;
   } catch (error) {
-    if (error instanceof Error && typeof (error as any).code === 'string') {
-      const code = (error as any).code;
+    if (error instanceof Error && typeof ((error as unknown as { code?: unknown }).code) === 'string') {
+      const code = (error as unknown as { code: string }).code;
       switch (code) {
         case "auth/weak-password":
           throw new Error("Password must be at least 8 characters, contain one uppercase letter, one special character (!@#$&*), and one number.");
@@ -37,8 +37,8 @@ async function login(email: string, password: string) {
     console.log("User logged in:", userCredential.user);
     return userCredential.user;
   } catch (error) {
-    if (error instanceof Error && typeof (error as any).code === 'string') {
-      const code = (error as any).code;
+    if (error instanceof Error && typeof ((error as unknown as { code?: unknown }).code) === 'string') {
+      const code = (error as unknown as { code: string }).code;
       switch (code) {
         case "auth/wrong-password":
           throw new Error("Incorrect password.");
