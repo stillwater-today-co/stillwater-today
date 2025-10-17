@@ -512,8 +512,8 @@
   transform: scale(1.05);
 }
 
-/* Static Header */
-.static-header {
+/* Banner */
+.banner {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -523,17 +523,19 @@
   margin: 0 auto;
 }
 
-.page-title {
-  color: #f1f5f9;
-  font-size: 1.8rem;
-  font-weight: 700;
-  margin: 0;
-  text-align: center;
-  background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  letter-spacing: -0.025em;
+.banner-image {
+  width: 100%;
+  height: auto;
+  max-height: 250px;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.banner-image:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
 }
 
 /* Scrollable Content */
