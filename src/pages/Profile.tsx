@@ -1,9 +1,9 @@
 import {
-    deleteUser,
-    EmailAuthProvider,
-    reauthenticateWithCredential,
-    updatePassword,
-    verifyBeforeUpdateEmail
+  deleteUser,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updateEmail,
+  updatePassword
 } from 'firebase/auth'
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -48,13 +48,21 @@ const Profile: React.FC = () => {
     clearMessages()
     try {
       if (!auth.currentUser) throw new Error('Not signed in')
-      // Send verification to the new email and apply change after verification
-      await requireRecentLogin(() => verifyBeforeUpdateEmail(auth.currentUser!, email))
-      setStatus('Verification sent to new email. Follow the link to confirm.')
+      // Require current password and reauthenticate, then update the email directly
+      if (!currentPassword) {
+        setError('Please enter your current password to confirm this change.')
+        return
+      }
+      const cred = EmailAuthProvider.credential(auth.currentUser.email!, currentPassword)
+      await reauthenticateWithCredential(auth.currentUser, cred)
+      await updateEmail(auth.currentUser, email)
+      setStatus('Email updated. Please check your new email for verification if required.')
+      setCurrentPassword('')
+      setEmail('')
     } catch (err: unknown) {
       const error = err as { code?: string; message?: string }
-      if (error?.code === 'auth/requires-recent-login' && !currentPassword) {
-        setError('Please enter your current password above and try again to confirm this change.')
+      if (error?.code === 'auth/requires-recent-login') {
+        setError('Recent login required. Please enter your current password above and try again.')
       } else {
         setError(error?.message || 'Failed to update email')
       }
