@@ -19,11 +19,19 @@ const Profile: React.FC = () => {
   const [currentPassword, setCurrentPassword] = useState('')
   const [status, setStatus] = useState<string>('')
   const [error, setError] = useState<string>('')
+  const [emailStatus, setEmailStatus] = useState<string>('')
+  const [emailError, setEmailError] = useState<string>('')
+  const [passwordStatus, setPasswordStatus] = useState<string>('')
+  const [passwordError, setPasswordError] = useState<string>('')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const clearMessages = () => {
     setStatus('')
     setError('')
+    setEmailStatus('')
+    setEmailError('')
+    setPasswordStatus('')
+    setPasswordError('')
   }
 
   const requireRecentLogin = async <T,>(action: () => Promise<T>) => {
@@ -46,7 +54,7 @@ const Profile: React.FC = () => {
   const handleUpdateEmail = async (e: React.FormEvent) => {
     e.preventDefault()
     clearMessages()
-    try {
+  try {
       if (!auth.currentUser) throw new Error('Not signed in')
       // Require current password and reauthenticate, then update the email directly
       if (!currentPassword) {
@@ -56,15 +64,15 @@ const Profile: React.FC = () => {
       const cred = EmailAuthProvider.credential(auth.currentUser.email!, currentPassword)
       await reauthenticateWithCredential(auth.currentUser, cred)
       await updateEmail(auth.currentUser, email)
-      setStatus('Email updated. Please check your new email for verification if required.')
+      setEmailStatus('Email updated. Please check your new email for verification if required.')
       setCurrentPassword('')
       setEmail('')
     } catch (err: unknown) {
       const error = err as { code?: string; message?: string }
       if (error?.code === 'auth/requires-recent-login') {
-        setError('Recent login required. Please enter your current password above and try again.')
+        setEmailError('Recent login required. Please enter your current password above and try again.')
       } else {
-        setError(error?.message || 'Failed to update email')
+        setEmailError(error?.message || 'Failed to update email')
       }
     }
   }
@@ -75,7 +83,7 @@ const Profile: React.FC = () => {
     e.preventDefault()
     clearMessages()
     if (newPassword !== confirmPassword) {
-      setError('New password and confirmation do not match.')
+      setPasswordError('New password and confirmation do not match.')
       return
     }
     try {
@@ -83,10 +91,10 @@ const Profile: React.FC = () => {
       await requireRecentLogin(() => updatePassword(auth.currentUser!, newPassword))
       setNewPassword('')
       setConfirmPassword('')
-      setStatus('Password updated')
+      setPasswordStatus('Password updated')
     } catch (err: unknown) {
       const error = err as { message?: string }
-      setError(error?.message || 'Failed to update password')
+      setPasswordError(error?.message || 'Failed to update password')
     }
   }
 
@@ -141,6 +149,12 @@ const Profile: React.FC = () => {
               <button type="submit" className="primary">Send Verification to New Email</button>
             </div>
             <div className="hint">This sends a verification to the entered email and updates after confirmation. Your current password is required for this change.</div>
+            {(emailStatus || emailError) && (
+              <div style={{ marginTop: 12 }}>
+                {emailStatus && <div className="status success">{emailStatus}</div>}
+                {emailError && <div className="status error">{emailError}</div>}
+              </div>
+            )}
           </form>
         </div>
 
@@ -170,6 +184,12 @@ const Profile: React.FC = () => {
             <div className="actions">
               <button type="submit" className="primary">Update Password</button>
             </div>
+            {(passwordStatus || passwordError) && (
+              <div style={{ marginTop: 12 }}>
+                {passwordStatus && <div className="status success">{passwordStatus}</div>}
+                {passwordError && <div className="status error">{passwordError}</div>}
+              </div>
+            )}
           </form>
         </div>
 
