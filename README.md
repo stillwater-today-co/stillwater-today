@@ -5,9 +5,9 @@ A modern React application with Firebase integration and automated CI/CD deploym
 ## 🚀 Features
 
 - **React 19** with TypeScript for type-safe development
-- **Firebase Integration** with Firestore database, Authentication, Storage, and Analytics
-- **User Authentication** with email/password sign-in and account creation
-- **Modern Dark UI** with glassmorphism effects and orange accents
+- **Firebase Integration** with Firestore database and Authentication
+- **User Authentication** with email/password sign-in, account creation, and password reset
+- **Modern Dark UI** with glassmorphism effects and responsive design
 - **Automated CI/CD Pipeline** with GitHub Actions
 - **Multi-Environment Deployments** (Staging & Production)
 - **User-Friendly Error Messages** with production-ready feedback
@@ -16,18 +16,19 @@ A modern React application with Firebase integration and automated CI/CD deploym
 ## 📋 What This App Does
 
 This application provides a complete user experience that:
-1. **User Authentication**: Secure sign-in and account creation with password policies
+1. **User Authentication**: Secure sign-in, account creation, and password reset functionality
 2. **Message Submission**: Authenticated users can submit messages to Firebase Firestore
 3. **Real-time Feedback**: Immediate status updates and user-friendly error messages
 4. **Data Storage**: Messages are stored with timestamps and user association
 5. **Modern UI**: Beautiful dark theme with responsive design and smooth animations
+6. **Password Recovery**: Users can reset their passwords via email when needed
 
 ## 🏗️ Architecture
 
 ```
 ├── src/
 │   ├── components/          # Reusable UI components
-│   │   └── Auth.tsx         # Authentication form component
+│   │   └── Auth.tsx         # Authentication form component with password reset
 │   ├── contexts/            # React context providers
 │   │   └── AuthContext.tsx  # User authentication state management
 │   ├── firebase/            # Firebase configuration and services
@@ -35,7 +36,6 @@ This application provides a complete user experience that:
 │   │   ├── firestore.ts     # Firestore database instance
 │   │   ├── auth.ts          # Firebase Auth instance
 │   │   ├── authService.ts   # Authentication service functions
-│   │   ├── storage.ts       # Cloud Storage service
 │   │   └── index.ts         # Centralized exports
 │   ├── pages/               # Application pages/views
 │   │   └── Home.tsx         # Main message submission page
@@ -52,8 +52,8 @@ This application provides a complete user experience that:
 ## 🛠️ Technology Stack
 
 - **Frontend**: React 19, TypeScript, Vite
-- **Backend**: Firebase (Firestore, Auth, Storage, Analytics)
-- **Styling**: CSS3 with modern design patterns
+- **Backend**: Firebase (Firestore, Auth)
+- **Styling**: CSS3 with modern design patterns and responsive design
 - **Build Tool**: Vite for fast development and optimized builds
 - **CI/CD**: GitHub Actions
 - **Deployment**: Firebase Hosting
@@ -157,8 +157,7 @@ This project uses automated deployment with GitHub Actions:
 2. Enable Firestore Database
 3. Enable Authentication with Email/Password provider
 4. Configure password policy in Authentication settings
-5. Enable Analytics (optional)
-6. Get your configuration from Project Settings
+5. Get your configuration from Project Settings
 
 ### Environment Variables
 
@@ -188,6 +187,7 @@ The application includes a complete authentication system:
 
 - **Sign In**: Existing users can sign in with email and password
 - **Sign Up**: New users can create accounts with email and password
+- **Password Reset**: Users can reset their passwords via email when needed
 - **Password Policy**: Enforced through Firebase Authentication
 - **User State**: Managed through React Context for app-wide access
 - **Error Handling**: User-friendly error messages for all authentication scenarios
@@ -199,6 +199,15 @@ The application includes:
 - **Code Quality**: ESLint with strict rules
 - **Build Verification**: Automated build checks in CI
 - **Deployment Testing**: Staging environment for validation
+
+## 🧹 Code Quality & Cleanup
+
+The codebase has been optimized for maintainability and performance:
+- **Removed Unused Dependencies**: Eliminated unused Firebase services (Storage, Analytics)
+- **Clean Architecture**: Streamlined Firebase configuration and exports
+- **Consistent Styling**: Replaced inline styles with CSS classes for better maintainability
+- **Optimized Imports**: Only importing what's actually used
+- **Modern Patterns**: Following React best practices and TypeScript strict mode
 
 ## 🔒 Security
 

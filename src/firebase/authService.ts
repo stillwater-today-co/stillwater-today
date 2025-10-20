@@ -1,4 +1,4 @@
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth'
+import { createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth'
 import { auth } from './auth'
 
 /**
@@ -31,6 +31,18 @@ export async function createUser(email: string, password: string) {
     return { success: true, user: userCredential.user }
   } catch (error: unknown) {
     console.error("User creation error:", error)
+    const errorCode = (error as { code?: string }).code || 'unknown'
+    const userMessage = getAuthErrorMessage(errorCode)
+    return { success: false, error: { ...(error as object), userMessage } }
+  }
+}
+
+export async function resetPassword(email: string) {
+  try {
+    await sendPasswordResetEmail(auth, email);
+    return { success: true }
+  } catch (error: unknown) {
+    console.error("Password reset error:", error)
     const errorCode = (error as { code?: string }).code || 'unknown'
     const userMessage = getAuthErrorMessage(errorCode)
     return { success: false, error: { ...(error as object), userMessage } }
