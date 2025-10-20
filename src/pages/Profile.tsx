@@ -11,7 +11,7 @@ import {
 const Profile: React.FC = () => {
   const user = auth.currentUser
 
-  const [email, setEmail] = useState(user?.email || '')
+  const [email, setEmail] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [currentPassword, setCurrentPassword] = useState('')
   const [status, setStatus] = useState<string>('')
@@ -93,7 +93,7 @@ const Profile: React.FC = () => {
 
       <main className="scrollable-content">
         <div className="card profile-card">
-          <h2>Account Email</h2>
+          <h2>Change Email</h2>
           <form onSubmit={handleUpdateEmail}>
             <div className="field">
               <label>Email</label>
@@ -113,7 +113,7 @@ const Profile: React.FC = () => {
         </div>
 
         <div className="card profile-card">
-          <h2>Password</h2>
+          <h2>Change Password</h2>
           <form onSubmit={handleUpdatePassword}>
             <div className="field">
               <label>New Password</label>
