@@ -108,13 +108,24 @@ async function getCurrentWeather(observationStationsUrl: string): Promise<NWSCur
   
   const stationsData = await stationsResponse.json()
   
+  // Define station type
+  interface Station {
+    url?: string
+    id?: string
+    name?: string
+    distance: number
+  }
+
   // Map and sort stations by distance
-  const availableStations = stationsData.features.map((f: any) => ({
-    url: f.id,
-    id: f.id?.split('/').pop(),
-    name: f.properties?.name,
-    distance: f.properties?.distance?.value ? Math.round(f.properties.distance.value * 0.000621371) : 999
-  })).sort((a: any, b: any) => a.distance - b.distance)
+  const availableStations: Station[] = stationsData.features.map((f: unknown) => {
+    const feature = f as { id?: string; properties?: { name?: string; distance?: { value?: number } } }
+    return {
+      url: feature.id,
+      id: feature.id?.split('/').pop(),
+      name: feature.properties?.name,
+      distance: feature.properties?.distance?.value ? Math.round(feature.properties.distance.value * 0.000621371) : 999
+    }
+  }).sort((a: Station, b: Station) => a.distance - b.distance)
   
   if (availableStations.length === 0) {
     throw new Error('No observation stations found')
@@ -134,51 +145,13 @@ async function getCurrentWeather(observationStationsUrl: string): Promise<NWSCur
       const data = await observationResponse.json()
       const props = data.properties
       
-      // DEBUG: Log the full response to find humidity
-      if (station.id === 'KSWO') {
-        console.log('🔍 FULL KSWO RESPONSE - Looking for humidity:')
-        console.log('Full properties object:', props)
-        console.log('All property keys:', Object.keys(props))
-        
-        // Check for different humidity property names
-        console.log('Checking possible humidity properties:')
-        console.log('relativeHumidity:', props.relativeHumidity)
-        console.log('humidity:', props.humidity)
-        console.log('dewpoint:', props.dewpoint)
-        console.log('dewPoint:', props.dewPoint)
-        console.log('moistureContent:', props.moistureContent)
-        console.log('waterVaporContent:', props.waterVaporContent)
-        
-        // Check if there are any properties with 'humid' in the name
-        const humidityProps = Object.keys(props).filter(key => 
-          key.toLowerCase().includes('humid') || 
-          key.toLowerCase().includes('moisture') ||
-          key.toLowerCase().includes('dew')
-        )
-        console.log('Properties containing humidity-related words:', humidityProps)
-        
-        // Log a few key properties to see structure
-        console.log('Temperature structure:', props.temperature)
-        console.log('Wind structure:', props.windSpeed)
-        console.log('Pressure structure:', props.barometricPressure)
-      }
-      
       // Check if this station has essential data
       const hasTemperature = props.temperature?.value != null
       const hasWind = props.windSpeed?.value != null
       
       // If this station has good basic data, use it
       if (hasTemperature && hasWind) {
-        console.log(`Using station: ${station.id} (${station.name})`)
-        console.log(`Station humidity: ${props.relativeHumidity?.value || 'null'}`)
-        console.log(`Station wind: ${props.windSpeed?.value} ${props.windSpeed?.unitCode}`)
-        
-        // Log humidity status for debugging
-        if (props.relativeHumidity?.value != null) {
-          console.log(`✅ Station ${station.id} has humidity: ${props.relativeHumidity.value}%`)
-        } else {
-          console.log(`❌ Station ${station.id} has no humidity data (will use Cushing backup)`)
-        }
+
         
         let humidityValue = props.relativeHumidity?.value || null
         
@@ -188,36 +161,28 @@ async function getCurrentWeather(observationStationsUrl: string): Promise<NWSCur
           const windUnit = props.windSpeed.unitCode
           const windValue = props.windSpeed.value
           
-          console.log(`🌪️ Wind unit: ${windUnit}, value: ${windValue}`)
-          
           if (windUnit === 'wmoUnit:milePerHour') {
             // Already in mph, just round it
             windSpeed = `${Math.round(windValue)} mph`
-            console.log(`Wind already in mph: ${windSpeed}`)
           } else if (windUnit === 'wmoUnit:meterPerSecond') {
             // Convert from m/s to mph
             windSpeed = `${Math.round(windValue * 2.237)} mph`
-            console.log(`Wind converted from m/s: ${windSpeed}`)
           } else if (windUnit === 'wmoUnit:knot') {
             // Convert from knots to mph  
             windSpeed = `${Math.round(windValue * 1.151)} mph`
-            console.log(`Wind converted from knots: ${windSpeed}`)
           } else if (windUnit === 'wmoUnit:km_h-1') {
             // Convert from km/h to mph
             windSpeed = `${Math.round(windValue / 1.609)} mph`
-            console.log(`Wind converted from km/h: ${windSpeed}`)
           } else {
             // Unknown unit, assume km/h since that's what we're seeing
             windSpeed = `${Math.round(windValue / 1.609)} mph`
-            console.log(`Wind unit unknown (${windUnit}), assuming km/h: ${windSpeed}`)
           }
         }
         
-        let windDirection = props.windDirection?.value ? getWindDirection(props.windDirection.value) : 'N'
+        const windDirection = props.windDirection?.value ? getWindDirection(props.windDirection.value) : 'N'
         
         // Get humidity from Cushing if primary station doesn't have it
         if (!humidityValue) {
-          console.log('Getting humidity from Cushing...')
           try {
             const cushingResponse = await fetch('https://api.weather.gov/stations/KCUH/observations/latest')
             if (cushingResponse.ok) {
@@ -225,14 +190,11 @@ async function getCurrentWeather(observationStationsUrl: string): Promise<NWSCur
               const cushingHumidity = cushingData.properties.relativeHumidity?.value
               if (cushingHumidity != null) {
                 humidityValue = cushingHumidity
-                console.log(`Got Cushing humidity: ${cushingHumidity}%`)
               }
             }
-          } catch (error) {
-            console.log('Failed to get Cushing humidity')
+          } catch {
+            // Silently fail if Cushing humidity unavailable
           }
-        } else {
-          console.log(`Using station humidity: ${humidityValue}%`)
         }
         
         return {
@@ -248,7 +210,7 @@ async function getCurrentWeather(observationStationsUrl: string): Promise<NWSCur
         }
       }
       
-    } catch (error) {
+    } catch {
       // Continue to next station if this one fails
       continue
     }

@@ -29,7 +29,8 @@ const Auth: React.FC = () => {
       setResult(`❌ ${errorMessage}`)
       
       // Show password reset option for specific errors
-      if (result.error?.code === 'auth/wrong-password' || result.error?.code === 'auth/user-not-found') {
+      const errorCode = (result.error as any)?.code
+      if (errorCode === 'auth/wrong-password' || errorCode === 'auth/user-not-found') {
         setShowPasswordReset(true)
       }
     }
@@ -70,7 +71,7 @@ const Auth: React.FC = () => {
     const result = await resetPassword(email)
     
     if (result.success) {
-      setResult(`✅ ${result.message}`)
+      setResult(`✅ Password reset email sent! Check your inbox.`)
       setShowPasswordReset(false)
     } else {
       setResult(`❌ ${result.error?.userMessage || 'Failed to send password reset email. Please try again.'}`)

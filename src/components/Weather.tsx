@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { fetchWeatherData, getCachedWeather, hasCachedWeather } from '../services/weatherService'
 
 interface WeatherData {
@@ -28,29 +28,15 @@ const Weather: React.FC = () => {
   const [toastMessage, setToastMessage] = useState('')
 
   // Show toast notification
-  const showToastNotification = (message: string) => {
+  const showToastNotification = useCallback((message: string) => {
     setToastMessage(message)
     setShowToast(true)
     setTimeout(() => {
       setShowToast(false)
     }, 3000) // Hide after 3 seconds
-  }
-
-  // Load weather data on component mount
-  useEffect(() => {
-    loadWeatherData(false)
-    
-    // Set up hourly refresh
-    const interval = setInterval(() => {
-      if (!hasCachedWeather()) {
-        loadWeatherData(false)
-      }
-    }, 60 * 60 * 1000) // 1 hour
-    
-    return () => clearInterval(interval)
   }, [])
 
-  const loadWeatherData = async (forceRefresh: boolean) => {
+  const loadWeatherData = useCallback(async (forceRefresh: boolean) => {
     // Always show loading when force refreshing (button click)
     if (forceRefresh) {
       setIsLoading(true)
@@ -113,7 +99,21 @@ const Weather: React.FC = () => {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [showToastNotification])
+
+  // Load weather data on component mount
+  useEffect(() => {
+    loadWeatherData(false)
+    
+    // Set up hourly refresh
+    const interval = setInterval(() => {
+      if (!hasCachedWeather()) {
+        loadWeatherData(false)
+      }
+    }, 60 * 60 * 1000) // 1 hour
+    
+    return () => clearInterval(interval)
+  }, [loadWeatherData])
 
   const handleRefresh = () => {
     loadWeatherData(true) // Force refresh
