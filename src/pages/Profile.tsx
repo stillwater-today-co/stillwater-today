@@ -1,9 +1,9 @@
 import {
-  deleteUser,
-  EmailAuthProvider,
-  reauthenticateWithCredential,
-  updatePassword,
-  verifyBeforeUpdateEmail
+    deleteUser,
+    EmailAuthProvider,
+    reauthenticateWithCredential,
+    updatePassword,
+    verifyBeforeUpdateEmail
 } from 'firebase/auth'
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -15,6 +15,7 @@ const Profile: React.FC = () => {
 
   const [email, setEmail] = useState('')
   const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [currentPassword, setCurrentPassword] = useState('')
   const [status, setStatus] = useState<string>('')
   const [error, setError] = useState<string>('')
@@ -65,10 +66,15 @@ const Profile: React.FC = () => {
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault()
     clearMessages()
+    if (newPassword !== confirmPassword) {
+      setError('New password and confirmation do not match.')
+      return
+    }
     try {
       if (!auth.currentUser) throw new Error('Not signed in')
       await requireRecentLogin(() => updatePassword(auth.currentUser!, newPassword))
       setNewPassword('')
+      setConfirmPassword('')
       setStatus('Password updated')
     } catch (err: unknown) {
       const error = err as { message?: string }
@@ -140,6 +146,16 @@ const Profile: React.FC = () => {
                 value={newPassword}
                 onChange={e => setNewPassword(e.target.value)}
                 placeholder="Enter new password"
+                required
+              />
+            </div>
+            <div className="field">
+              <label>Confirm New Password</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                placeholder="Confirm new password"
                 required
               />
             </div>
