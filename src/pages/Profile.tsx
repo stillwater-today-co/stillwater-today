@@ -25,8 +25,9 @@ const Profile: React.FC = () => {
   const requireRecentLogin = async <T,>(action: () => Promise<T>) => {
     try {
       return await action()
-    } catch (e: any) {
-      if (e?.code === 'auth/requires-recent-login') {
+    } catch (e: unknown) {
+      const error = e as { code?: string }
+      if (error?.code === 'auth/requires-recent-login') {
         if (!user?.email || !currentPassword) {
           throw e
         }
@@ -46,11 +47,12 @@ const Profile: React.FC = () => {
       // Send verification to the new email and apply change after verification
       await requireRecentLogin(() => verifyBeforeUpdateEmail(auth.currentUser!, email))
       setStatus('Verification sent to new email. Follow the link to confirm.')
-    } catch (err: any) {
-      if (err?.code === 'auth/requires-recent-login' && !currentPassword) {
+    } catch (err: unknown) {
+      const error = err as { code?: string; message?: string }
+      if (error?.code === 'auth/requires-recent-login' && !currentPassword) {
         setError('Please enter your current password above and try again to confirm this change.')
       } else {
-        setError(err?.message || 'Failed to update email')
+        setError(error?.message || 'Failed to update email')
       }
     }
   }
@@ -65,8 +67,9 @@ const Profile: React.FC = () => {
       await requireRecentLogin(() => updatePassword(auth.currentUser!, newPassword))
       setNewPassword('')
       setStatus('Password updated')
-    } catch (err: any) {
-      setError(err?.message || 'Failed to update password')
+    } catch (err: unknown) {
+      const error = err as { message?: string }
+      setError(error?.message || 'Failed to update password')
     }
   }
 
@@ -76,11 +79,12 @@ const Profile: React.FC = () => {
       if (!auth.currentUser) throw new Error('Not signed in')
       await requireRecentLogin(() => deleteUser(auth.currentUser!))
       setStatus('Account deleted')
-    } catch (err: any) {
-      if (err?.code === 'auth/requires-recent-login' && !currentPassword) {
+    } catch (err: unknown) {
+      const error = err as { code?: string; message?: string }
+      if (error?.code === 'auth/requires-recent-login' && !currentPassword) {
         setError('Please enter your current password above and try again to delete your account.')
       } else {
-        setError(err?.message || 'Failed to delete account')
+        setError(error?.message || 'Failed to delete account')
       }
     }
   }
