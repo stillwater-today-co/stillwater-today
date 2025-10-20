@@ -94,7 +94,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           <h3>Account</h3>
           <button
             className="sidebar-btn"
-            onClick={() => window.open('/profile', '_blank')}
+            onClick={() => { window.location.href = '/profile' }}
           >
             Profile Settings
           </button>

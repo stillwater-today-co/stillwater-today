@@ -5,6 +5,7 @@ import { AuthProvider } from './contexts/AuthContext.tsx'
 import { useAuth } from './hooks/useAuth'
 import Feedback from './pages/Feedback'
 import Home from './pages/Home'
+import Profile from './pages/Profile'
 
 
 function AppContent() {
@@ -23,6 +24,7 @@ function AppContent() {
   return (
     <Routes>
       <Route path="/feedback" element={<Feedback />} />
+      <Route path="/profile" element={user ? <Profile /> : <Auth />} />
       <Route path="/*" element={user ? <Home /> : <Auth />} />
     </Routes>
   );

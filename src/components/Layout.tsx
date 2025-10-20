@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import AISummary from './AISummary'
+import Banner from './Banner'
 import EventsSection from './EventsSection'
 import Sidebar from './Sidebar'
 import Weather from './Weather'
@@ -29,10 +30,8 @@ const Layout: React.FC = () => {
       )}
       {/* Main Content */}
       <div className={`main-content ${sidebarOpen ? 'sidebar-open' : ''}`}>
-        {/* Static Header */}
-        <header className="static-header">
-          <h1 className="page-title">Stillwater Today</h1>
-        </header>
+        {/* Banner */}
+        <Banner />
 
         {/* Scrollable content */}
         <main className="scrollable-content">
