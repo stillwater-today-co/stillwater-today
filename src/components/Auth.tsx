@@ -1,5 +1,6 @@
 import { CheckCircle, XCircle } from 'lucide-react';
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createUser, resetPassword, signInUser } from '../firebase/authService';
 
 const Auth: React.FC = () => {
@@ -11,6 +12,7 @@ const Auth: React.FC = () => {
   const [showPasswordReset, setShowPasswordReset] = useState(false)
   const [passwordResetLoading, setPasswordResetLoading] = useState(false)
   const [resetEmail, setResetEmail] = useState('')
+  const navigate = useNavigate()
 
 
   const handleSignIn = async () => {
@@ -28,6 +30,7 @@ const Auth: React.FC = () => {
     if (result.success) {
       setResult('SIGNIN_SUCCESS')
       // The AuthContext will automatically handle the state change
+      navigate('/')
     } else {
       const errorMessage = result.error?.userMessage || 'Sign-in failed. Please try again.'
       setResult(`SIGNIN_ERROR:${errorMessage}`)
@@ -52,6 +55,7 @@ const Auth: React.FC = () => {
     if (result.success) {
       setResult('SIGNUP_SUCCESS')
       // The AuthContext will automatically handle the state change
+      navigate('/')
     } else {
       setResult(`SIGNUP_ERROR:${result.error?.userMessage || 'Account creation failed. Please try again.'}`)
     }
