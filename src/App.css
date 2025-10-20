@@ -778,6 +778,11 @@
   font-size: 0.875rem;
   font-weight: 500;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 100px;
+  justify-content: center;
 }
 
 .refresh-btn:hover:not(:disabled) {
@@ -789,6 +794,28 @@
   background: #64748b;
   cursor: not-allowed;
   transform: none;
+}
+
+.refresh-btn.loading .refresh-icon {
+  animation: spin 1s linear infinite;
+}
+
+.refresh-icon {
+  font-size: 1rem;
+  transition: transform 0.2s ease;
+}
+
+.refresh-text {
+  white-space: nowrap;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .summary-content {
@@ -877,6 +904,33 @@
   width: 100%;
   max-width: 1000px;
   box-sizing: border-box;
+  position: relative;
+}
+
+.toast-notification {
+  position: absolute;
+  top: -0.5rem;
+  right: 1rem;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  animation: toastSlideIn 0.3s ease-out;
+}
+
+@keyframes toastSlideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 .weather-header {
@@ -886,10 +940,17 @@
   margin-bottom: 1.5rem;
 }
 
-.weather-header h2 {
+.weather-title h2 {
   color: #f1f5f9;
   font-size: 1.5rem;
   margin: 0;
+}
+
+.last-updated {
+  color: #94a3b8;
+  font-size: 0.875rem;
+  margin: 0.25rem 0 0 0;
+  font-weight: 400;
 }
 
 .weather-content {

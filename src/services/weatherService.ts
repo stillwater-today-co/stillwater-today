@@ -4,7 +4,7 @@
 interface NWSCurrentWeather {
   temperature: number
   temperatureUnit: string
-  relativeHumidity: number
+  relativeHumidity: number | null  // CRITICAL: Humidity can be null when sensors don't provide data
   windSpeed: string
   windDirection: string
   barometricPressure: number
@@ -108,39 +108,153 @@ async function getCurrentWeather(observationStationsUrl: string): Promise<NWSCur
   
   const stationsData = await stationsResponse.json()
   
-  // The stations API returns an array of station URLs in features[].id
-  const firstStationUrl = stationsData.features[0]?.id
+  // Map and sort stations by distance
+  const availableStations = stationsData.features.map((f: any) => ({
+    url: f.id,
+    id: f.id?.split('/').pop(),
+    name: f.properties?.name,
+    distance: f.properties?.distance?.value ? Math.round(f.properties.distance.value * 0.000621371) : 999
+  })).sort((a: any, b: any) => a.distance - b.distance)
   
-  if (!firstStationUrl) {
+  if (availableStations.length === 0) {
     throw new Error('No observation stations found')
   }
   
-  // Extract station ID from the URL (e.g., "https://api.weather.gov/stations/KSWO" -> "KSWO")
-  const stationId = firstStationUrl.split('/').pop()
-  
-  // Get current observations from the first station
-  const observationResponse = await fetch(
-    `https://api.weather.gov/stations/${stationId}/observations/latest`
-  )
-  
-  if (!observationResponse.ok) {
-    throw new Error(`Failed to get current weather: ${observationResponse.status}`)
+  // Try stations until we find one with good temperature and wind data
+  for (const station of availableStations) {
+    try {
+      const observationResponse = await fetch(
+        `https://api.weather.gov/stations/${station.id}/observations/latest`
+      )
+      
+      if (!observationResponse.ok) {
+        continue
+      }
+      
+      const data = await observationResponse.json()
+      const props = data.properties
+      
+      // DEBUG: Log the full response to find humidity
+      if (station.id === 'KSWO') {
+        console.log('🔍 FULL KSWO RESPONSE - Looking for humidity:')
+        console.log('Full properties object:', props)
+        console.log('All property keys:', Object.keys(props))
+        
+        // Check for different humidity property names
+        console.log('Checking possible humidity properties:')
+        console.log('relativeHumidity:', props.relativeHumidity)
+        console.log('humidity:', props.humidity)
+        console.log('dewpoint:', props.dewpoint)
+        console.log('dewPoint:', props.dewPoint)
+        console.log('moistureContent:', props.moistureContent)
+        console.log('waterVaporContent:', props.waterVaporContent)
+        
+        // Check if there are any properties with 'humid' in the name
+        const humidityProps = Object.keys(props).filter(key => 
+          key.toLowerCase().includes('humid') || 
+          key.toLowerCase().includes('moisture') ||
+          key.toLowerCase().includes('dew')
+        )
+        console.log('Properties containing humidity-related words:', humidityProps)
+        
+        // Log a few key properties to see structure
+        console.log('Temperature structure:', props.temperature)
+        console.log('Wind structure:', props.windSpeed)
+        console.log('Pressure structure:', props.barometricPressure)
+      }
+      
+      // Check if this station has essential data
+      const hasTemperature = props.temperature?.value != null
+      const hasWind = props.windSpeed?.value != null
+      
+      // If this station has good basic data, use it
+      if (hasTemperature && hasWind) {
+        console.log(`Using station: ${station.id} (${station.name})`)
+        console.log(`Station humidity: ${props.relativeHumidity?.value || 'null'}`)
+        console.log(`Station wind: ${props.windSpeed?.value} ${props.windSpeed?.unitCode}`)
+        
+        // Log humidity status for debugging
+        if (props.relativeHumidity?.value != null) {
+          console.log(`✅ Station ${station.id} has humidity: ${props.relativeHumidity.value}%`)
+        } else {
+          console.log(`❌ Station ${station.id} has no humidity data (will use Cushing backup)`)
+        }
+        
+        let humidityValue = props.relativeHumidity?.value || null
+        
+        // Check wind unit and convert appropriately
+        let windSpeed = '0 mph'
+        if (props.windSpeed?.value) {
+          const windUnit = props.windSpeed.unitCode
+          const windValue = props.windSpeed.value
+          
+          console.log(`🌪️ Wind unit: ${windUnit}, value: ${windValue}`)
+          
+          if (windUnit === 'wmoUnit:milePerHour') {
+            // Already in mph, just round it
+            windSpeed = `${Math.round(windValue)} mph`
+            console.log(`Wind already in mph: ${windSpeed}`)
+          } else if (windUnit === 'wmoUnit:meterPerSecond') {
+            // Convert from m/s to mph
+            windSpeed = `${Math.round(windValue * 2.237)} mph`
+            console.log(`Wind converted from m/s: ${windSpeed}`)
+          } else if (windUnit === 'wmoUnit:knot') {
+            // Convert from knots to mph  
+            windSpeed = `${Math.round(windValue * 1.151)} mph`
+            console.log(`Wind converted from knots: ${windSpeed}`)
+          } else if (windUnit === 'wmoUnit:km_h-1') {
+            // Convert from km/h to mph
+            windSpeed = `${Math.round(windValue / 1.609)} mph`
+            console.log(`Wind converted from km/h: ${windSpeed}`)
+          } else {
+            // Unknown unit, assume km/h since that's what we're seeing
+            windSpeed = `${Math.round(windValue / 1.609)} mph`
+            console.log(`Wind unit unknown (${windUnit}), assuming km/h: ${windSpeed}`)
+          }
+        }
+        
+        let windDirection = props.windDirection?.value ? getWindDirection(props.windDirection.value) : 'N'
+        
+        // Get humidity from Cushing if primary station doesn't have it
+        if (!humidityValue) {
+          console.log('Getting humidity from Cushing...')
+          try {
+            const cushingResponse = await fetch('https://api.weather.gov/stations/KCUH/observations/latest')
+            if (cushingResponse.ok) {
+              const cushingData = await cushingResponse.json()
+              const cushingHumidity = cushingData.properties.relativeHumidity?.value
+              if (cushingHumidity != null) {
+                humidityValue = cushingHumidity
+                console.log(`Got Cushing humidity: ${cushingHumidity}%`)
+              }
+            }
+          } catch (error) {
+            console.log('Failed to get Cushing humidity')
+          }
+        } else {
+          console.log(`Using station humidity: ${humidityValue}%`)
+        }
+        
+        return {
+          temperature: props.temperature?.value || 0,
+          temperatureUnit: props.temperature?.unitCode || 'wmoUnit:degC',
+          relativeHumidity: humidityValue,
+          windSpeed: windSpeed,
+          windDirection: windDirection,
+          barometricPressure: props.barometricPressure?.value || 0,
+          visibility: props.visibility?.value ? Math.round(props.visibility.value * 0.000621371) : 10,
+          textDescription: props.textDescription || 'Unknown',
+          icon: props.icon || ''
+        }
+      }
+      
+    } catch (error) {
+      // Continue to next station if this one fails
+      continue
+    }
   }
   
-  const data = await observationResponse.json()
-  const props = data.properties
-  
-  return {
-    temperature: props.temperature?.value || 0,
-    temperatureUnit: props.temperature?.unitCode || 'wmoUnit:degC',
-    relativeHumidity: props.relativeHumidity?.value || 0,
-    windSpeed: props.windSpeed?.value ? `${Math.round(props.windSpeed.value * 2.237)} mph` : '0 mph', // Convert m/s to mph
-    windDirection: props.windDirection?.value ? getWindDirection(props.windDirection.value) : 'N',
-    barometricPressure: props.barometricPressure?.value || 0,
-    visibility: props.visibility?.value ? Math.round(props.visibility.value * 0.000621371) : 10, // Convert meters to miles
-    textDescription: props.textDescription || 'Unknown',
-    icon: props.icon || ''
-  }
+  throw new Error('No observation stations returned valid data')
 }
 
 // Convert wind direction degrees to cardinal direction
@@ -210,13 +324,18 @@ export async function fetchWeatherData(forceRefresh: boolean = false): Promise<W
       if (processedForecast.length >= 5) break
     }
     
+    // Handle null humidity properly
+    const humidityDisplay = currentWeather.relativeHumidity !== null 
+      ? `${Math.round(currentWeather.relativeHumidity)}%`
+      : 'N/A'
+    
     const weatherData: WeatherData = {
       current: {
         temperature: `${tempF}°F`,
         condition: currentWeather.textDescription,
         icon: getWeatherEmoji(currentWeather.icon, currentWeather.textDescription),
         feelsLike: `${feelsLike}°F`,
-        humidity: `${Math.round(currentWeather.relativeHumidity)}%`,
+        humidity: humidityDisplay,
         wind: `${currentWeather.windSpeed} ${currentWeather.windDirection}`,
         visibility: `${currentWeather.visibility} mi`
       },

@@ -23,6 +23,18 @@ const Weather: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null)
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const [showToast, setShowToast] = useState(false)
+  const [toastMessage, setToastMessage] = useState('')
+
+  // Show toast notification
+  const showToastNotification = (message: string) => {
+    setToastMessage(message)
+    setShowToast(true)
+    setTimeout(() => {
+      setShowToast(false)
+    }, 3000) // Hide after 3 seconds
+  }
 
   // Load weather data on component mount
   useEffect(() => {
@@ -39,23 +51,55 @@ const Weather: React.FC = () => {
   }, [])
 
   const loadWeatherData = async (forceRefresh: boolean) => {
+    // Always show loading when force refreshing (button click)
+    if (forceRefresh) {
+      setIsLoading(true)
+      setError(null)
+    }
+    
     // Check for cached data first if not force refreshing
     if (!forceRefresh) {
       const cached = getCachedWeather()
       if (cached) {
         setWeatherData(cached)
         setError(null)
+        setLastUpdated(new Date()) // Set when we load cached data
         return
       }
     }
 
-    setIsLoading(true)
-    setError(null)
+    // Show loading for automatic refreshes too
+    if (!forceRefresh) {
+      setIsLoading(true)
+      setError(null)
+    }
     
     try {
+      // Add a minimum loading time for better UX when refresh is clicked
+      const minLoadTime = forceRefresh ? 500 : 0 // 500ms minimum for button clicks
+      const startTime = Date.now()
+      
+      // Check if we have cached data before fetching
+      const hadCachedData = forceRefresh && hasCachedWeather()
+      
       const data = await fetchWeatherData(forceRefresh)
+      
+      // Ensure minimum loading time for button clicks
+      if (forceRefresh) {
+        const elapsed = Date.now() - startTime
+        if (elapsed < minLoadTime) {
+          await new Promise(resolve => setTimeout(resolve, minLoadTime - elapsed))
+        }
+      }
+      
       setWeatherData(data)
       setError(null)
+      setLastUpdated(new Date())
+      
+      // Show toast if refresh was clicked but cached data was used
+      if (forceRefresh && hadCachedData) {
+        showToastNotification('Already up to date')
+      }
     } catch (err) {
       console.error('Failed to load weather:', err)
       setError(err instanceof Error ? err.message : 'Failed to load weather data')
@@ -64,6 +108,7 @@ const Weather: React.FC = () => {
       const cached = getCachedWeather()
       if (cached) {
         setWeatherData(cached)
+        if (!lastUpdated) setLastUpdated(new Date())
       }
     } finally {
       setIsLoading(false)
@@ -76,14 +121,37 @@ const Weather: React.FC = () => {
 
   return (
     <section className="weather-section">
+      {/* Toast notification */}
+      {showToast && (
+        <div className="toast-notification">
+          <span>✅ {toastMessage}</span>
+        </div>
+      )}
+      
       <div className="weather-header">
-        <h2>Current Weather</h2>
+        <div className="weather-title">
+          <h2>Current Weather</h2>
+          {lastUpdated && (
+            <p className="last-updated">
+              Last updated: {lastUpdated.toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit',
+                hour12: true 
+              })}
+            </p>
+          )}
+        </div>
         <button 
-          className="refresh-btn"
+          className={`refresh-btn ${isLoading ? 'loading' : ''}`}
           onClick={handleRefresh}
           disabled={isLoading}
         >
-          {isLoading ? 'Refreshing...' : 'Refresh'}
+          <span className="refresh-icon">
+            {isLoading ? '↻' : '↻'}
+          </span>
+          <span className="refresh-text">
+            {isLoading ? 'Refreshing...' : 'Refresh'}
+          </span>
         </button>
       </div>
       
