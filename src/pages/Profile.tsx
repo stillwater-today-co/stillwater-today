@@ -1,21 +1,24 @@
-import React, { useState } from 'react'
-import { auth } from '../firebase/auth'
 import {
-  updatePassword,
   deleteUser,
-  reauthenticateWithCredential,
   EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
   verifyBeforeUpdateEmail
 } from 'firebase/auth'
+import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { auth } from '../firebase/auth'
 
 const Profile: React.FC = () => {
   const user = auth.currentUser
+  const navigate = useNavigate()
 
   const [email, setEmail] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [currentPassword, setCurrentPassword] = useState('')
   const [status, setStatus] = useState<string>('')
   const [error, setError] = useState<string>('')
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const clearMessages = () => {
     setStatus('')
@@ -77,12 +80,20 @@ const Profile: React.FC = () => {
     clearMessages()
     try {
       if (!auth.currentUser) throw new Error('Not signed in')
-      await requireRecentLogin(() => deleteUser(auth.currentUser!))
+      // require the user to enter their current password before deleting
+      if (!currentPassword) {
+        setError('Please enter your current password to delete your account.')
+        return
+      }
+      // reauthenticate with provided current password
+      const cred = EmailAuthProvider.credential(auth.currentUser.email!, currentPassword)
+      await reauthenticateWithCredential(auth.currentUser, cred)
+      await deleteUser(auth.currentUser)
       setStatus('Account deleted')
     } catch (err: unknown) {
       const error = err as { code?: string; message?: string }
-      if (error?.code === 'auth/requires-recent-login' && !currentPassword) {
-        setError('Please enter your current password above and try again to delete your account.')
+      if (error?.code === 'auth/requires-recent-login') {
+        setError('Recent login required. Please enter your current password above and try again.')
       } else {
         setError(error?.message || 'Failed to delete account')
       }
@@ -91,8 +102,11 @@ const Profile: React.FC = () => {
 
   return (
     <div className="profile-page">
-      <header className="static-header">
+      <header className="static-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <h1 className="page-title">Profile Settings</h1>
+        <div>
+          <button className="primary" onClick={() => navigate('/')}>Go back to home</button>
+        </div>
       </header>
 
       <main className="scrollable-content">
@@ -135,23 +149,45 @@ const Profile: React.FC = () => {
           </form>
         </div>
 
-        <div className="card profile-card">
-          <h2>Current Password</h2>
-          <div className="field">
-            <label>Current Password (for sensitive actions)</label>
-            <input
-              type="password"
-              value={currentPassword}
-              onChange={e => setCurrentPassword(e.target.value)}
-              placeholder="Enter current password"
-            />
-          </div>
-        </div>
+        {/* Current password input is prompted inline for sensitive actions (e.g. delete) */}
 
         <div className="card danger profile-card">
           <h2>Delete Account</h2>
-          <button className="danger" onClick={handleDeleteAccount}>Delete Account</button>
-          <div className="hint">Your current password is required to permanently delete your account.</div>
+          {!showDeleteConfirm ? (
+            <>
+              <button className="danger" onClick={() => { setShowDeleteConfirm(true); clearMessages(); }}>Delete Account</button>
+              <div className="hint">Click delete to confirm. You will be prompted to enter your current password.</div>
+            </>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div className="field">
+                <label>Current Password</label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={e => setCurrentPassword(e.target.value)}
+                  placeholder="Enter current password to confirm"
+                />
+              </div>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button
+                  className="danger"
+                  onClick={async () => {
+                    await handleDeleteAccount()
+                    setShowDeleteConfirm(false)
+                  }}
+                >
+                  Confirm Delete
+                </button>
+                <button
+                  onClick={() => { setShowDeleteConfirm(false); setCurrentPassword(''); clearMessages(); }}
+                >
+                  Cancel
+                </button>
+              </div>
+              <div className="hint">Your current password is required to permanently delete your account.</div>
+            </div>
+          )}
         </div>
 
         {(status || error) && (
