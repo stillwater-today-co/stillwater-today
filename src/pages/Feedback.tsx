@@ -19,7 +19,7 @@ const Feedback: React.FC = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', width: '100vw', background: '#ff8800', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+  <div style={{ minHeight: '100vh', width: '100vw', background: '#FF6A00', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ maxWidth: 600, width: '100%', padding: 32, background: 'rgba(255,255,255,0.97)', borderRadius: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <h1 style={{
           fontFamily: 'Montserrat, Arial, sans-serif',
