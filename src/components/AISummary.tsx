@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import { Bot, Calendar, Newspaper, Sun } from 'lucide-react';
+import React, { useState } from 'react';
 
 const AISummary: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -32,7 +33,7 @@ const AISummary: React.FC = () => {
           </div>
         ) : (
           <div className="summary-placeholder">
-            <div className="placeholder-icon">🤖</div>
+            <div className="placeholder-icon"><Bot color="#64748b" size={28} /></div>
             <h3>AI Summary Coming Soon</h3>
             <p>
               This section will display an intelligent summary of today's most important 
@@ -41,15 +42,15 @@ const AISummary: React.FC = () => {
             </p>
             <div className="placeholder-features">
               <div className="feature-item">
-                <span className="feature-icon">📰</span>
+                <span className="feature-icon"><Newspaper color="#f59e42" size={18} /></span>
                 <span>Local News Highlights</span>
               </div>
               <div className="feature-item">
-                <span className="feature-icon">📅</span>
+                <span className="feature-icon"><Calendar color="#f59e42" size={18} /></span>
                 <span>Upcoming Events</span>
               </div>
               <div className="feature-item">
-                <span className="feature-icon">🌤️</span>
+                <span className="feature-icon"><Sun color="#f59e42" size={18} /></span>
                 <span>Weather Insights</span>
               </div>
             </div>

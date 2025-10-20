@@ -1,4 +1,5 @@
 import { signOut } from 'firebase/auth';
+import { Mail, Share2, X } from 'lucide-react';
 import React, { useState } from 'react';
 import { auth } from '../firebase/auth'; // Adjust the import path as necessary
 
@@ -8,34 +9,20 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  const [preferences, setPreferences] = useState({
-    theme: 'dark',
-    notifications: 'all',
-    summaryLength: 'medium',
-    eventsLimit: '10',
-    dataSources: {
-      localNews: true,
-      events: true,
-      weather: false
-    }
-  })
 
-  const handlePreferenceChange = (key: string, value: string | boolean) => {
-    if (key === 'dataSources') {
-      setPreferences(prev => ({
-        ...prev,
-        dataSources: {
-          ...prev.dataSources,
-          [value as string]: !prev.dataSources[value as keyof typeof prev.dataSources]
-        }
-      }))
-    } else {
-      setPreferences(prev => ({
-        ...prev,
-        [key]: value
-      }))
+  const [notification, setNotification] = useState('all');
+  const [copyMsg, setCopyMsg] = useState('');
+
+  const handleCopyUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.origin);
+      setCopyMsg('URL copied');
+      setTimeout(() => setCopyMsg(''), 1500);
+    } catch {
+      setCopyMsg('Copy failed');
+      setTimeout(() => setCopyMsg(''), 1500);
     }
-  }
+  };
 
   const handleSignOut = async () => {
     try {
@@ -56,120 +43,60 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           onClick={onClose}
           aria-label="Close sidebar"
         >
-          ×
+          <X size={24} />
         </button>
       </div>
-      
       <div className="sidebar-content">
+        {/* Notification Section */}
         <div className="sidebar-section">
-          <h3>User Preferences</h3>
-          <div className="preference-item">
-            <label htmlFor="theme">Theme</label>
-            <select 
-              id="theme" 
-              className="preference-select"
-              value={preferences.theme}
-              onChange={(e) => handlePreferenceChange('theme', e.target.value)}
-            >
-              <option value="dark">Dark</option>
-              <option value="light">Light</option>
-              <option value="auto">Auto</option>
-            </select>
-          </div>
-          
-          <div className="preference-item">
-            <label htmlFor="notifications">Notifications</label>
-            <select 
-              id="notifications" 
-              className="preference-select"
-              value={preferences.notifications}
-              onChange={(e) => handlePreferenceChange('notifications', e.target.value)}
-            >
-              <option value="all">All</option>
-              <option value="important">Important Only</option>
-              <option value="none">None</option>
-            </select>
-          </div>
+          <h3>Notifications</h3>
+          <select
+            className="preference-select"
+            value={notification}
+            onChange={e => setNotification(e.target.value)}
+          >
+            <option value="all">All</option>
+            <option value="AI summary">AI Summary</option>
+            <option value="weather">Weather</option>
+            <option value="events">Events</option>
+            <option value="none">None</option>
+          </select>
         </div>
 
+        {/* Feedback Section */}
         <div className="sidebar-section">
-          <h3>Display Settings</h3>
-          <div className="preference-item">
-            <label htmlFor="summary-length">Summary Length</label>
-            <select 
-              id="summary-length" 
-              className="preference-select"
-              value={preferences.summaryLength}
-              onChange={(e) => handlePreferenceChange('summaryLength', e.target.value)}
-            >
-              <option value="short">Short</option>
-              <option value="medium">Medium</option>
-              <option value="long">Long</option>
-            </select>
-          </div>
-          
-          <div className="preference-item">
-            <label htmlFor="events-limit">Events to Show</label>
-            <select 
-              id="events-limit" 
-              className="preference-select"
-              value={preferences.eventsLimit}
-              onChange={(e) => handlePreferenceChange('eventsLimit', e.target.value)}
-            >
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="20">20</option>
-              <option value="all">All</option>
-            </select>
-          </div>
+          <h3>Feedback</h3>
+          <a
+            className="sidebar-btn"
+            href="/feedback"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Mail size={18} style={{marginRight: 6, verticalAlign: 'middle'}} /> Send Feedback
+          </a>
         </div>
 
+        {/* Share Site Option */}
         <div className="sidebar-section">
-          <h3>Data Sources</h3>
-          <div className="preference-item">
-            <label className="checkbox-label">
-              <input 
-                type="checkbox" 
-                checked={preferences.dataSources.localNews}
-                onChange={() => handlePreferenceChange('dataSources', 'localNews')}
-              />
-              <span className="checkmark"></span>
-              Local News
-            </label>
-          </div>
-          
-          <div className="preference-item">
-            <label className="checkbox-label">
-              <input 
-                type="checkbox" 
-                checked={preferences.dataSources.events}
-                onChange={() => handlePreferenceChange('dataSources', 'events')}
-              />
-              <span className="checkmark"></span>
-              Events
-            </label>
-          </div>
-          
-          <div className="preference-item">
-            <label className="checkbox-label">
-              <input 
-                type="checkbox" 
-                checked={preferences.dataSources.weather}
-                onChange={() => handlePreferenceChange('dataSources', 'weather')}
-              />
-              <span className="checkmark"></span>
-              Weather
-            </label>
-          </div>
+          <h3>Share Our Site</h3>
+          <button
+            className="sidebar-btn"
+            onClick={handleCopyUrl}
+            style={{display: 'flex', alignItems: 'center'}}
+          >
+            <Share2 size={18} style={{marginRight: 6, verticalAlign: 'middle'}} /> Copy URL
+          </button>
+          {copyMsg && <div className="copy-msg">{copyMsg}</div>}
         </div>
 
+        {/* Account Section */}
         <div className="sidebar-section">
           <h3>Account</h3>
-          <button className="sidebar-btn" onClick={() => console.log('Profile Settings clicked')}>
+          <button
+            className="sidebar-btn"
+            onClick={() => { window.location.href = '/profile' }}
+          >
             Profile Settings
-          </button>
-          <button className="sidebar-btn" onClick={() => console.log('Privacy Settings clicked')}>
-            Privacy Settings
           </button>
           <button className="sidebar-btn danger" onClick={handleSignOut}>
             Sign Out
