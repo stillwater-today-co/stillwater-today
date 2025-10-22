@@ -181,19 +181,28 @@ async function getCurrentWeather(observationStationsUrl: string): Promise<NWSCur
         
         const windDirection = props.windDirection?.value ? getWindDirection(props.windDirection.value) : 'N'
         
-        // Get humidity from Cushing if primary station doesn't have it
+        // Get humidity from backup stations if primary station doesn't have it
         if (!humidityValue) {
-          try {
-            const cushingResponse = await fetch('https://api.weather.gov/stations/KCUH/observations/latest')
-            if (cushingResponse.ok) {
-              const cushingData = await cushingResponse.json()
-              const cushingHumidity = cushingData.properties.relativeHumidity?.value
-              if (cushingHumidity != null) {
-                humidityValue = cushingHumidity
+          // Try multiple backup stations - prioritizing closer stations first
+          const backupStations = ['KCUH', 'KPNC', 'KOKC', 'KTUL', 'KOUN', 'KEND'] // Cushing, Ponca City, OKC, Tulsa, Norman, Enid
+          
+          for (const stationId of backupStations) {
+            try {
+              const backupResponse = await fetch(`https://api.weather.gov/stations/${stationId}/observations/latest`)
+              if (backupResponse.ok) {
+                const backupData = await backupResponse.json()
+                const backupHumidity = backupData.properties.relativeHumidity?.value
+                
+                // Use humidity data if it's valid (between 0-100%)
+                if (backupHumidity != null && backupHumidity > 0 && backupHumidity <= 100) {
+                  humidityValue = backupHumidity
+                  break // Found working humidity, stop trying
+                }
               }
+            } catch (error) {
+              // Continue to next station if this one fails
+              continue
             }
-          } catch {
-            // Silently fail if Cushing humidity unavailable
           }
         }
         
