@@ -199,7 +199,7 @@ async function getCurrentWeather(observationStationsUrl: string): Promise<NWSCur
                   break // Found working humidity, stop trying
                 }
               }
-            } catch (error) {
+            } catch {
               // Continue to next station if this one fails
               continue
             }
