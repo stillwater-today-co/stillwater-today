@@ -2,6 +2,7 @@ import {
   deleteUser,
   EmailAuthProvider,
   reauthenticateWithCredential,
+  sendEmailVerification,
   updateEmail,
   updatePassword
 } from 'firebase/auth'
@@ -21,6 +22,7 @@ const Profile: React.FC = () => {
   const [error, setError] = useState<string>('')
   const [emailStatus, setEmailStatus] = useState<string>('')
   const [emailError, setEmailError] = useState<string>('')
+  const [emailVerified, setEmailVerified] = useState<boolean>(false)
   const [passwordStatus, setPasswordStatus] = useState<string>('')
   const [passwordError, setPasswordError] = useState<string>('')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -56,21 +58,58 @@ const Profile: React.FC = () => {
     clearMessages()
   try {
       if (!auth.currentUser) throw new Error('Not signed in')
-      // Require current password and reauthenticate, then update the email directly
-      if (!currentPassword) {
-        setError('Please enter your current password to confirm this change.')
-        return
-      }
-      const cred = EmailAuthProvider.credential(auth.currentUser.email!, currentPassword)
-      await reauthenticateWithCredential(auth.currentUser, cred)
-      await updateEmail(auth.currentUser, email)
-      setEmailStatus('Email updated. Please check your new email for verification if required.')
-      setCurrentPassword('')
-      setEmail('')
+      // Send a verification email to the user's CURRENT email address to confirm
+      // they want to change their account email. Do not require the current
+      // password for this step.
+      await sendEmailVerification(auth.currentUser)
+      setEmailStatus('Verification sent to your current email. Please follow the link there to confirm. After confirming, return and click "Check Verification Status" to proceed.')
     } catch (err: unknown) {
       const error = err as { code?: string; message?: string }
       if (error?.code === 'auth/requires-recent-login') {
         setEmailError('Recent login required. Please enter your current password above and try again.')
+      } else {
+        setEmailError(error?.message || 'Failed to update email')
+      }
+    }
+  }
+
+  const checkVerificationStatus = async () => {
+    clearMessages()
+    try {
+      if (!auth.currentUser) throw new Error('Not signed in')
+      await auth.currentUser.reload()
+      if (auth.currentUser.emailVerified) {
+        setEmailVerified(true)
+        setEmailStatus('Email verified. You can now enter a new email to update your account.')
+      } else {
+        setEmailVerified(false)
+        setEmailError('Email not verified yet. Please check your inbox and click the verification link.')
+      }
+    } catch (err: unknown) {
+      const error = err as { message?: string }
+      setEmailError(error?.message || 'Failed to check verification status')
+    }
+  }
+
+  const handleApplyNewEmail = async (e: React.FormEvent) => {
+    e.preventDefault()
+    clearMessages()
+    try {
+      if (!auth.currentUser) throw new Error('Not signed in')
+      if (!email) {
+        setEmailError('Please enter the new email you want to use.')
+        return
+      }
+      // Attempt to update. If action requires recent login, requireRecentLogin
+      // will handle reauthentication if user has provided `currentPassword`.
+      await requireRecentLogin(() => updateEmail(auth.currentUser!, email))
+      setEmailStatus('Email updated successfully.')
+      setEmail('')
+      setEmailVerified(false)
+    } catch (err: unknown) {
+      const error = err as { code?: string; message?: string }
+      if (error?.code === 'auth/requires-recent-login') {
+        setEmailError('Recent login required. Please enter your current password below and try again.')
       } else {
         setEmailError(error?.message || 'Failed to update email')
       }
@@ -134,28 +173,49 @@ const Profile: React.FC = () => {
       <main className="scrollable-content">
         <div className="card profile-card">
           <h2>Change Email</h2>
-          <form onSubmit={handleUpdateEmail}>
-            <div className="field">
-              <label>Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                required
-              />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div>
+              <div className="hint">Click to send a verification link to your current account email. After clicking the link in your inbox, return and click "Check Verification Status".</div>
+              <div className="actions" style={{ marginTop: 8 }}>
+                <button className="primary" onClick={handleUpdateEmail}>Send Verification Email</button>
+                <button style={{ marginLeft: 8 }} onClick={checkVerificationStatus}>Check Verification Status</button>
+              </div>
             </div>
-            <div className="actions">
-              <button type="submit" className="primary">Send Verification to New Email</button>
-            </div>
-            <div className="hint">This sends a verification to the entered email and updates after confirmation. Your current password is required for this change.</div>
+
+            {emailVerified && (
+              <form onSubmit={handleApplyNewEmail}>
+                <div className="field">
+                  <label>New Email</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    required
+                  />
+                </div>
+                <div className="field">
+                  <label>Current Password (only if prompted)</label>
+                  <input
+                    type="password"
+                    value={currentPassword}
+                    onChange={e => setCurrentPassword(e.target.value)}
+                    placeholder="Enter current password if required"
+                  />
+                </div>
+                <div className="actions">
+                  <button type="submit" className="primary">Update Email</button>
+                </div>
+              </form>
+            )}
+
             {(emailStatus || emailError) && (
               <div style={{ marginTop: 12 }}>
                 {emailStatus && <div className="status success">{emailStatus}</div>}
                 {emailError && <div className="status error">{emailError}</div>}
               </div>
             )}
-          </form>
+          </div>
         </div>
 
         <div className="card profile-card">
