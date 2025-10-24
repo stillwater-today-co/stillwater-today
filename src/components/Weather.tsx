@@ -99,7 +99,7 @@ const Weather: React.FC = () => {
     } finally {
       setIsLoading(false)
     }
-  }, [showToastNotification])
+  }, [showToastNotification, lastUpdated])
 
   // Load weather data on component mount
   useEffect(() => {
