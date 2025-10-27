@@ -92,7 +92,16 @@ const EventsSection: React.FC = () => {
                 </div>
               </div>
               <p className="event-description">{event.description}</p>
-              <button className="event-btn">Learn More</button>
+              {/* Link to OKState events calendar search for this event title */}
+              <a
+                className="event-btn"
+                href={`https://events.okstate.edu/calendar?search=${encodeURIComponent(event.title)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Learn more about ${event.title} on OKState events calendar`}
+              >
+                Learn More
+              </a>
             </div>
           ))
         ) : (
