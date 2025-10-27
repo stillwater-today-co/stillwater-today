@@ -94,12 +94,12 @@ const Weather: React.FC = () => {
       const cached = getCachedWeather()
       if (cached) {
         setWeatherData(cached)
-        if (!lastUpdated) setLastUpdated(new Date())
+        setLastUpdated(prev => prev || new Date()) // Only set if not already set
       }
     } finally {
       setIsLoading(false)
     }
-  }, [showToastNotification, lastUpdated])
+  }, [showToastNotification])
 
   // Load weather data on component mount
   useEffect(() => {
