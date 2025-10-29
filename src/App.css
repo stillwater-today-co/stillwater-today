@@ -1519,6 +1519,10 @@
   transition: all 0.2s ease;
 }
 
+.contact-btn {
+  margin-left: 0.5rem; /* Nudge contact button slightly to the right */
+}
+
 .event-btn:hover {
   background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
   transform: translateY(-1px);
