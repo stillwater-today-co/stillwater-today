@@ -107,7 +107,7 @@ let eventsCache: {
 const CACHE_DURATION = 30 * 60 * 1000 // 30 minutes in milliseconds
 
 // Track available pages
-let totalPages = { main: 62, extension: 23 } // From our API testing
+const totalPages = { main: 62, extension: 23 } // From our API testing
 
 // Utility function to shuffle array
 function shuffleArray<T>(array: T[]): T[] {
@@ -470,7 +470,7 @@ export async function loadMoreCategoryEvents(
 
   try {
     const currentIds = new Set(currentEvents.map(e => e.id))
-    let foundEvents: ProcessedEvent[] = []
+    const foundEvents: ProcessedEvent[] = []
     let attempts = 0
     const maxAttempts = 5 // Limit attempts to avoid infinite loops
 
