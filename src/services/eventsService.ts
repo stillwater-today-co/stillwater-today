@@ -93,6 +93,9 @@ export interface ProcessedEvent {
   rawDate: Date // Add raw date for proper comparison
   category?: string // Event category (Academic, Athletics, Community, etc.)
   college?: string // Academic college if applicable
+  ranking?: number // Event ranking from API
+  numAttending?: number // Number of people attending
+  popularityScore?: number // Calculated popularity score
 }
 
 // Cache for API responses (30 minutes cache)
@@ -168,6 +171,11 @@ async function fetchEventsFromPages(
         const nextInstance = nextInstanceWrapper.event_instance
         const { date, time, rawDate } = formatEventDateTime(nextInstance.start, nextInstance.all_day)
         
+        // Calculate popularity score based on ranking and attendance
+        const ranking = nextInstance.ranking || 0
+        const numAttending = nextInstance.num_attending || 0
+        const popularityScore = (numAttending * 2) + (ranking * 1) // Weight attendance more than ranking
+        
         return {
           id: event.id,
           title: event.title,
@@ -178,8 +186,11 @@ async function fetchEventsFromPages(
           cost: formatCost(event.ticket_cost),
           type: event.experience,
           rawDate,
-          category: event.filters?.event_types?.[0]?.name || 'Other',
+          category: getEventCategory(event.filters),
           college: event.filters?.event_academic_college?.[0]?.name,
+          ranking,
+          numAttending,
+          popularityScore,
           ...(event.custom_fields && {
             contact: {
               name: event.custom_fields.contact_name,
@@ -295,6 +306,34 @@ function formatCost(cost: string | null): string {
   return cost
 }
 
+// Get appropriate category from event filters
+function getEventCategory(filters: EventFilters | undefined): string {
+  if (!filters) return 'Other'
+  
+  // Priority order: event_types, event_themes, event_program_area, event_audience
+  if (filters.event_types && filters.event_types.length > 0) {
+    return filters.event_types[0].name
+  }
+  
+  if (filters.event_themes && filters.event_themes.length > 0) {
+    return filters.event_themes[0].name
+  }
+  
+  if (filters.event_program_area && filters.event_program_area.length > 0) {
+    return filters.event_program_area[0].name
+  }
+  
+  if (filters.event_audience && filters.event_audience.length > 0) {
+    return filters.event_audience[0].name
+  }
+  
+  if (filters.event_academic_college && filters.event_academic_college.length > 0) {
+    return filters.event_academic_college[0].name
+  }
+  
+  return 'Other'
+}
+
 // Main function to fetch initial OSU events (randomized from first 2 pages)
 export async function fetchOSUEvents(forceRefresh: boolean = false): Promise<ProcessedEvent[]> {
   // Check cache first (unless force refresh)
@@ -362,8 +401,11 @@ export async function searchEvents(keyword: string): Promise<ProcessedEvent[]> {
 
 // Filter events by date
 export function filterEventsByDate(events: ProcessedEvent[], filter: 'all' | 'today' | 'upcoming'): ProcessedEvent[] {
+  console.log(`Filtering ${events.length} events by date filter: ${filter}`)
+  
   if (filter === 'all') return events
   
+  const now = new Date()
   const today = new Date()
   today.setHours(0, 0, 0, 0) // Start of today
   
@@ -371,19 +413,21 @@ export function filterEventsByDate(events: ProcessedEvent[], filter: 'all' | 'to
   tomorrow.setDate(tomorrow.getDate() + 1) // Start of tomorrow
   
   if (filter === 'today') {
-    return events.filter(event => {
+    const filtered = events.filter(event => {
       const eventDate = new Date(event.rawDate)
       eventDate.setHours(0, 0, 0, 0)
       return eventDate.getTime() === today.getTime()
     })
+    console.log(`Today filter result: ${filtered.length} events`)
+    return filtered
   }
   
   if (filter === 'upcoming') {
-    return events.filter(event => {
-      const eventDate = new Date(event.rawDate)
-      eventDate.setHours(0, 0, 0, 0)
-      return eventDate.getTime() >= tomorrow.getTime()
+    const filtered = events.filter(event => {
+      return event.rawDate.getTime() > now.getTime()
     })
+    console.log(`Upcoming filter result: ${filtered.length} events`)
+    return filtered
   }
   
   return events
@@ -406,6 +450,15 @@ export function filterEventsByCategory(events: ProcessedEvent[], category: strin
   return events.filter(event => event.category === category)
 }
 
+// Sort events by popularity (highest score first)
+export function sortEventsByPopularity(events: ProcessedEvent[]): ProcessedEvent[] {
+  return [...events].sort((a, b) => {
+    const scoreA = a.popularityScore || 0
+    const scoreB = b.popularityScore || 0
+    return scoreB - scoreA // Descending order (most popular first)
+  })
+}
+
 // Combined filter: date and category
 export function filterEvents(
   events: ProcessedEvent[], 
@@ -415,6 +468,20 @@ export function filterEvents(
   let filtered = filterEventsByDate(events, dateFilter)
   if (categoryFilter !== 'all') {
     filtered = filterEventsByCategory(filtered, categoryFilter)
+  }
+  return filtered
+}
+
+// Combined filter with popularity sorting option
+export function filterAndSortEvents(
+  events: ProcessedEvent[], 
+  dateFilter: 'all' | 'today' | 'upcoming',
+  categoryFilter: string,
+  sortByPopularity: boolean = false
+): ProcessedEvent[] {
+  let filtered = filterEvents(events, dateFilter, categoryFilter)
+  if (sortByPopularity) {
+    filtered = sortEventsByPopularity(filtered)
   }
   return filtered
 }
