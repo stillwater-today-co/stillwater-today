@@ -14,6 +14,11 @@ installed express and cors packages for backend server setup
 set up basic express server to handle API requests
 created route to fetch events from external API and serve to frontend
 
+10-31
+Happy Halloween!
+Improved Weather section: unit conversion, short report for week ahead
+Events section improvement in progress
+Found possible AI agents for our project: DeepSeek, Hermes 3 405B Instruct
 
 
 */
