@@ -848,6 +848,15 @@
   box-sizing: border-box;
 }
 
+/* Slightly larger and more readable summary text */
+.summary-text {
+  color: #ffffff;
+  font-size: 1.12rem;
+  line-height: 1.7;
+  max-width: 840px;
+  margin: 0 auto;
+}
+
 .summary-header {
   display: flex;
   justify-content: space-between;

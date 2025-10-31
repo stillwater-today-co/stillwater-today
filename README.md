@@ -5,6 +5,8 @@ A modern community information platform for Stillwater, Oklahoma, built with Rea
 ## 🚀 Features
 
 - **AI-Powered Daily Summaries** - Intelligent briefings of local news and happenings
+  - Uses Google Gemini 2.0 Flash (exp) to summarize top-ranked OSU events for today
+  - Prepends a concise, 2-sentence weather overview with a clothing suggestion
 - **Real-Time Weather** - Integration with National Weather Service API for Stillwater
   - Current conditions with detailed metrics
   - 5-day forecast with hourly updates
@@ -75,6 +77,7 @@ Stillwater Today serves as a community hub that:
 - **Styling**: CSS3 with modern dark theme (black/gray/orange)
 - **Backend**: Firebase (Firestore, Auth, Storage)
 - **APIs**: National Weather Service (NWS) for weather data
+  - **AI**: Google Gemini 2.0 Flash (experimental) for daily summaries
 - **Build Tool**: Vite for fast development and builds
 - **CI/CD**: GitHub Actions
 - **Deployment**: Firebase Hosting
@@ -112,6 +115,9 @@ Stillwater Today serves as a community hub that:
    VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
    VITE_FIREBASE_APP_ID=your_app_id
    VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
+   
+   # AI Summary (Google Gemini)
+   VITE_GEMINI_API_KEY=your_google_ai_studio_key
    ```
 
 4. **Start development server**
@@ -160,6 +166,15 @@ The application integrates with the National Weather Service API to provide:
 - **Location-Specific**: Data for Stillwater, Oklahoma (36.1156° N, 97.0584° W)
 
 Weather data is cached in Firebase to improve performance and reduce API calls.
+
+## 🤖 AI Daily Summary
+
+- Summarizes the top 10 ranked OSU events for the current day using the OSU Events API ranked query.
+- Adds a 2-sentence weather lead (temperature as an exact number; qualitative for other metrics) with a clothing suggestion.
+- Model: Google Gemini 2.0 Flash (experimental) via `@google/generative-ai`.
+- Env: set `VITE_GEMINI_API_KEY` in `.env`.
+- Ranking source example (date is dynamic at runtime):
+  `https://events.okstate.edu/api/2/events?start=YYYY-MM-DD&days=1&pp=20&sort=ranking&direction=desc&distinct=true&for=main`
 
 ## 📊 Firebase Data Structure
 
