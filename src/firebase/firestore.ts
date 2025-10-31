@@ -10,6 +10,12 @@ import {
 import { app } from './config'
 import type { User } from 'firebase/auth'
 
+// Firebase error interface
+interface FirebaseError extends Error {
+  code?: string
+  message: string
+}
+
 export const firestore = getFirestore(app)
 
 // User profile interface
@@ -56,11 +62,12 @@ export async function createUserProfile(user: User): Promise<UserProfile> {
     return profile
   } catch (error) {
     console.error('Error creating user profile:', error)
+    const firebaseError = error as FirebaseError
     console.error('Error details:', {
-      code: (error as any).code,
-      message: (error as any).message
+      code: firebaseError.code,
+      message: firebaseError.message
     })
-    throw new Error(`Failed to create user profile: ${(error as any).message}`)
+    throw new Error(`Failed to create user profile: ${firebaseError.message}`)
   }
 }
 
@@ -120,12 +127,13 @@ export async function addEventToFavorites(uid: string, eventId: number): Promise
     }
   } catch (error) {
     console.error('Error adding event to favorites:', error)
+    const firebaseError = error as FirebaseError
     console.error('Error details:', {
-      code: (error as any).code,
-      message: (error as any).message,
-      stack: (error as any).stack
+      code: firebaseError.code,
+      message: firebaseError.message,
+      stack: firebaseError.stack
     })
-    throw new Error(`Failed to add event to favorites: ${(error as any).message}`)
+    throw new Error(`Failed to add event to favorites: ${firebaseError.message}`)
   }
 }
 
@@ -152,12 +160,13 @@ export async function removeEventFromFavorites(uid: string, eventId: number): Pr
     console.log('Event removed from favorites successfully')
   } catch (error) {
     console.error('Error removing event from favorites:', error)
+    const firebaseError = error as FirebaseError
     console.error('Error details:', {
-      code: (error as any).code,
-      message: (error as any).message,
-      stack: (error as any).stack
+      code: firebaseError.code,
+      message: firebaseError.message,
+      stack: firebaseError.stack
     })
-    throw new Error(`Failed to remove event from favorites: ${(error as any).message}`)
+    throw new Error(`Failed to remove event from favorites: ${firebaseError.message}`)
   }
 }
 
@@ -179,9 +188,10 @@ export async function getUserFavoriteEvents(uid: string): Promise<number[]> {
     return favorites
   } catch (error) {
     console.error('Error getting user favorites:', error)
+    const firebaseError = error as FirebaseError
     console.error('Error details:', {
-      code: (error as any).code,
-      message: (error as any).message
+      code: firebaseError.code,
+      message: firebaseError.message
     })
     return []
   }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { 
   fetchOSUEvents, 
   filterAndSortEvents,
@@ -22,7 +22,6 @@ const EventsSection: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [availableCategories, setAvailableCategories] = useState<string[]>([])
   const [showFavorites, setShowFavorites] = useState(false)
-  const [isFilterRefreshing, setIsFilterRefreshing] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   
   // Pagination state
@@ -31,11 +30,6 @@ const EventsSection: React.FC = () => {
   
   // Favorites hook
   const { toggleFavorite, isFavorited, isAuthenticated } = useFavorites()
-
-  // Load OSU events on component mount
-  useEffect(() => {
-    loadEvents()
-  }, [])
 
   // Auto-load more events when filtered results are too few
   useEffect(() => {
@@ -67,10 +61,10 @@ const EventsSection: React.FC = () => {
     return () => clearTimeout(timeout)
   }, [categoryFilter, dateFilter, events, loadingMore])
 
-  const loadEvents = async (forceRefresh: boolean = false) => {
+  const loadEvents = useCallback(async (forceRefresh: boolean = false) => {
     try {
       // Only show main loading spinner on initial load or filter refresh, not on manual refresh
-      if (!isFilterRefreshing && !isRefreshing && events.length === 0) {
+      if (!isRefreshing && events.length === 0) {
         setLoading(true)
       }
       setError(null)
@@ -84,11 +78,16 @@ const EventsSection: React.FC = () => {
       console.error('Failed to load events:', err)
       setError(err instanceof Error ? err.message : 'Failed to load events')
     } finally {
-      if (!isFilterRefreshing && !isRefreshing) {
+      if (!isRefreshing) {
         setLoading(false)
       }
     }
-  }
+  }, [isRefreshing, events.length])
+
+  // Load OSU events on component mount
+  useEffect(() => {
+    loadEvents()
+  }, [loadEvents])
 
   const handleRefresh = async () => {
     if (isRefreshing || loading) return // Prevent double refresh
@@ -262,26 +261,23 @@ const EventsSection: React.FC = () => {
             </button>
           </div>
         </div>
-        <div className={`events-filters ${isFilterRefreshing ? 'refreshing' : ''}`}>
+        <div className="events-filters">
           <div className="date-filters">
             <button 
               className={`filter-btn ${dateFilter === 'all' ? 'active' : ''}`}
               onClick={() => handleDateFilterChange('all')}
-              disabled={isFilterRefreshing}
             >
               All Events
             </button>
             <button 
               className={`filter-btn ${dateFilter === 'today' ? 'active' : ''}`}
               onClick={() => handleDateFilterChange('today')}
-              disabled={isFilterRefreshing}
             >
               Today
             </button>
             <button 
               className={`filter-btn ${dateFilter === 'upcoming' ? 'active' : ''}`}
               onClick={() => handleDateFilterChange('upcoming')}
-              disabled={isFilterRefreshing}
             >
               Upcoming
             </button>
@@ -292,7 +288,6 @@ const EventsSection: React.FC = () => {
               value={categoryFilter} 
               onChange={(e) => handleCategoryFilterChange(e.target.value)}
               className="category-dropdown"
-              disabled={isFilterRefreshing}
             >
               <option value="all">All Categories</option>
               {availableCategories.map(category => (
@@ -301,11 +296,7 @@ const EventsSection: React.FC = () => {
                 </option>
               ))}
             </select>
-            {isFilterRefreshing && (
-              <div className="filter-loading">
-                <span className="loading-spinner-small"></span>
-              </div>
-            )}
+
           </div>
         </div>
       </div>

@@ -142,7 +142,10 @@ const Weather: React.FC = () => {
   useEffect(() => {
     try {
       localStorage.setItem('weather_unit', unit)
-    } catch {}
+    } catch (error) {
+      // Ignore localStorage errors in incognito mode
+      console.warn('Failed to save weather unit preference:', error)
+    }
   }, [unit])
 
   const handleRefresh = () => {
