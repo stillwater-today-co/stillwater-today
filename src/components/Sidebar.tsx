@@ -10,7 +10,6 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
-  const [notification, setNotification] = useState('all');
   const [copyMsg, setCopyMsg] = useState('');
 
   const handleCopyUrl = async () => {
@@ -47,21 +46,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </button>
       </div>
       <div className="sidebar-content">
-        {/* Notification Section */}
-        <div className="sidebar-section">
-          <h3>Notifications</h3>
-          <select
-            className="preference-select"
-            value={notification}
-            onChange={e => setNotification(e.target.value)}
-          >
-            <option value="all">All</option>
-            <option value="AI summary">AI Summary</option>
-            <option value="weather">Weather</option>
-            <option value="events">Events</option>
-            <option value="none">None</option>
-          </select>
-        </div>
+        {/* Notifications removed as requested */}
 
         {/* Feedback Section */}
         <div className="sidebar-section">
