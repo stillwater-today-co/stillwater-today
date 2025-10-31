@@ -1,21 +1,31 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { fetchWeatherData, getCachedWeather, hasCachedWeather } from '../services/weatherService'
 
 interface WeatherData {
   current: {
     temperature: string
+    temperatureValue: number
     condition: string
     icon: string
     feelsLike: string
+    feelsLikeValue: number
     humidity: string
     wind: string
+    windSpeedValue: number
     visibility: string
+    visibilityValue: number
   }
   forecast: Array<{
     date: string
     icon: string
     high: string
+    highValue: number
     low: string
+    lowValue: number
+    shortForecast?: string
+    detailedForecast?: string
+    windSpeed?: string
+    precipProbability?: number | null
   }>
 }
 
@@ -26,6 +36,8 @@ const Weather: React.FC = () => {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
+  const [unit, setUnit] = useState<'imperial' | 'metric'>('imperial')
+  const [reportDay, setReportDay] = useState<number | null>(null)
 
   // Show toast notification
   const showToastNotification = useCallback((message: string) => {
@@ -115,6 +127,24 @@ const Weather: React.FC = () => {
     return () => clearInterval(interval)
   }, [loadWeatherData])
 
+  // Load unit preference from localStorage (default to imperial)
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('weather_unit')
+      if (stored === 'metric' || stored === 'imperial') setUnit(stored)
+      else setUnit('imperial')
+    } catch {
+      setUnit('imperial')
+    }
+  }, [])
+
+  // Persist unit when changed
+  useEffect(() => {
+    try {
+      localStorage.setItem('weather_unit', unit)
+    } catch {}
+  }, [unit])
+
   const handleRefresh = () => {
     loadWeatherData(true) // Force refresh
   }
@@ -141,18 +171,28 @@ const Weather: React.FC = () => {
             </p>
           )}
         </div>
-        <button 
-          className={`refresh-btn ${isLoading ? 'loading' : ''}`}
-          onClick={handleRefresh}
-          disabled={isLoading}
-        >
-          <span className="refresh-icon">
-            {isLoading ? '↻' : '↻'}
-          </span>
-          <span className="refresh-text">
-            {isLoading ? 'Refreshing...' : 'Refresh'}
-          </span>
-        </button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button
+            className={`unit-btn`}
+            onClick={() => setUnit(prev => prev === 'imperial' ? 'metric' : 'imperial')}
+            title={`Switch to ${unit === 'imperial' ? 'metric system' : 'imperial system'}`}
+          >
+            {unit === 'imperial' ? 'Imperial system' : 'Metric system'}
+          </button>
+
+          <button 
+            className={`refresh-btn ${isLoading ? 'loading' : ''}`}
+            onClick={handleRefresh}
+            disabled={isLoading}
+          >
+            <span className="refresh-icon">
+              {isLoading ? '↻' : '↻'}
+            </span>
+            <span className="refresh-text">
+              {isLoading ? 'Refreshing...' : 'Refresh'}
+            </span>
+          </button>
+        </div>
       </div>
       
       <div className="weather-content">
@@ -180,14 +220,22 @@ const Weather: React.FC = () => {
             
             <div className="weather-main">
               <div className="weather-icon">{weatherData.current.icon}</div>
-              <div className="weather-temp">{weatherData.current.temperature}</div>
+              <div className="weather-temp">
+                {unit === 'imperial'
+                  ? `${weatherData.current.temperatureValue}°F`
+                  : `${Math.round((weatherData.current.temperatureValue - 32) * 5/9)}°C`}
+              </div>
               <div className="weather-condition">{weatherData.current.condition}</div>
             </div>
             
             <div className="weather-details">
               <div className="weather-detail">
                 <span className="detail-label">Feels Like</span>
-                <span className="detail-value">{weatherData.current.feelsLike}</span>
+                <span className="detail-value">
+                  {unit === 'imperial'
+                    ? `${weatherData.current.feelsLikeValue}°F`
+                    : `${Math.round((weatherData.current.feelsLikeValue - 32) * 5/9)}°C`}
+                </span>
               </div>
               <div className="weather-detail">
                 <span className="detail-label">Humidity</span>
@@ -195,11 +243,19 @@ const Weather: React.FC = () => {
               </div>
               <div className="weather-detail">
                 <span className="detail-label">Wind</span>
-                <span className="detail-value">{weatherData.current.wind}</span>
+                <span className="detail-value">
+                  {unit === 'imperial'
+                    ? `${weatherData.current.windSpeedValue} mph ${weatherData.current.wind.split(' ').slice(-1)[0]}`
+                    : `${Math.round(weatherData.current.windSpeedValue * 1.609)} km/h ${weatherData.current.wind.split(' ').slice(-1)[0]}`}
+                </span>
               </div>
               <div className="weather-detail">
                 <span className="detail-label">Visibility</span>
-                <span className="detail-value">{weatherData.current.visibility}</span>
+                <span className="detail-value">
+                  {unit === 'imperial'
+                    ? `${weatherData.current.visibilityValue} mi`
+                    : `${Math.round(weatherData.current.visibilityValue * 1.609)} km`}
+                </span>
               </div>
             </div>
 
@@ -207,14 +263,41 @@ const Weather: React.FC = () => {
               <h3>5-Day Forecast</h3>
               <div className="forecast-grid">
                 {weatherData.forecast.map((day, index) => (
-                  <div key={index} className="forecast-day">
+                  <button
+                    key={index}
+                    className="forecast-day"
+                    onClick={() => setReportDay(index)}
+                    aria-label={`Open report for ${day.date}`}
+                  >
                     <div className="forecast-date">{day.date}</div>
                     <div className="forecast-icon">{day.icon}</div>
-                    <div className="forecast-temps">{day.high} / {day.low}</div>
-                  </div>
+                    <div className="forecast-temps">
+                      {unit === 'imperial'
+                        ? `${day.highValue}°F / ${day.lowValue}°F`
+                        : `${Math.round((day.highValue - 32) * 5/9)}°C / ${Math.round((day.lowValue - 32) * 5/9)}°C`}
+                    </div>
+                  </button>
                 ))}
               </div>
             </div>
+
+            {/* Day report modal */}
+            {reportDay !== null && (
+              <div className="modal-overlay" role="dialog" aria-modal="true">
+                <div className="modal">
+                  <h3>{weatherData.forecast[reportDay].date} — Detailed Report</h3>
+                  <p><strong>Summary:</strong> {weatherData.forecast[reportDay].shortForecast}</p>
+                  {weatherData.forecast[reportDay].detailedForecast && (
+                    <p><strong>Details:</strong> {weatherData.forecast[reportDay].detailedForecast}</p>
+                  )}
+                  <p><strong>Wind:</strong> {weatherData.forecast[reportDay].windSpeed || 'N/A'}</p>
+                  <p><strong>Precipitation chance:</strong> {weatherData.forecast[reportDay].precipProbability != null ? `${weatherData.forecast[reportDay].precipProbability}%` : 'N/A'}</p>
+                  <div style={{ marginTop: 12 }}>
+                    <button className="primary" onClick={() => setReportDay(null)}>Close</button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="weather-note">
               <p>

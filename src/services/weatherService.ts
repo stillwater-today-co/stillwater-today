@@ -26,23 +26,34 @@ interface NWSForecastPeriod {
   icon: string
   shortForecast: string
   detailedForecast: string
+  probabilityOfPrecipitation?: { value?: number }
 }
 
 interface WeatherData {
   current: {
     temperature: string
+    temperatureValue: number
     condition: string
     icon: string
     feelsLike: string
+    feelsLikeValue: number
     humidity: string
     wind: string
+    windSpeedValue: number
     visibility: string
+    visibilityValue: number
   }
   forecast: Array<{
     date: string
     icon: string
     high: string
+    highValue: number
     low: string
+    lowValue: number
+    shortForecast?: string
+    detailedForecast?: string
+    windSpeed?: string
+    precipProbability?: number | null
   }>
 }
 
@@ -284,12 +295,19 @@ export async function fetchWeatherData(forceRefresh: boolean = false): Promise<W
       const night = forecast[i + 1]
       
       if (day) {
-        processedForecast.push({
-          date: i === 0 ? 'Today' : i === 2 ? 'Tomorrow' : new Date(day.startTime).toLocaleDateString('en-US', { weekday: 'short' }),
-          icon: getWeatherEmoji(day.icon, day.shortForecast),
-          high: `${day.temperature}°`,
-          low: night ? `${night.temperature}°` : `${day.temperature - 10}°`
-        })
+          processedForecast.push({
+            date: i === 0 ? 'Today' : i === 2 ? 'Tomorrow' : new Date(day.startTime).toLocaleDateString('en-US', { weekday: 'short' }),
+            icon: getWeatherEmoji(day.icon, day.shortForecast),
+            high: `${day.temperature}°`,
+            highValue: day.temperature,
+            low: night ? `${night.temperature}°` : `${day.temperature - 10}°`,
+            lowValue: night ? night.temperature : day.temperature - 10,
+            // additional details for a daily report
+            shortForecast: day.shortForecast,
+            detailedForecast: day.detailedForecast || '',
+            windSpeed: day.windSpeed || '',
+            precipProbability: day.probabilityOfPrecipitation?.value ?? null,
+          })
       }
       
       if (processedForecast.length >= 5) break
@@ -303,12 +321,16 @@ export async function fetchWeatherData(forceRefresh: boolean = false): Promise<W
     const weatherData: WeatherData = {
       current: {
         temperature: `${tempF}°F`,
+        temperatureValue: tempF,
         condition: currentWeather.textDescription,
         icon: getWeatherEmoji(currentWeather.icon, currentWeather.textDescription),
         feelsLike: `${feelsLike}°F`,
+        feelsLikeValue: feelsLike,
         humidity: humidityDisplay,
         wind: `${currentWeather.windSpeed} ${currentWeather.windDirection}`,
-        visibility: `${currentWeather.visibility} mi`
+        windSpeedValue: Number(currentWeather.windSpeed.replace(/[^0-9.-]+/g, '')) || 0,
+        visibility: `${currentWeather.visibility} mi`,
+        visibilityValue: Number(currentWeather.visibility) || 0
       },
       forecast: processedForecast
     }
