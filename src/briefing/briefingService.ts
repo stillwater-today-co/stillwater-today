@@ -124,24 +124,23 @@ async function buildTwoSentenceWeatherSummary(): Promise<string> {
       else if (mph >= 5) windDescriptor = 'a light breeze'
     }
 
-    let skyPhrase = 'a calm day'
-    if (isRainy) skyPhrase = 'periods of rain'
-    else if (isSnowy) skyPhrase = 'wintry conditions'
-    else if (isSunny) skyPhrase = 'plenty of sun'
+    let skyPhrase = 'calm skies'
+    if (isRainy) skyPhrase = 'showers at times'
+    else if (isSnowy) skyPhrase = 'wintry skies'
+    else if (isSunny) skyPhrase = 'mostly sunny skies'
     else if (isCloudy) skyPhrase = 'mostly cloudy skies'
 
     const tempPhrase = tempF !== undefined ? `${tempF}°F` : 'seasonal temperatures'
 
     // Clothing suggestion
-    let suggestion = 'dress comfortably'
+    let suggestion = 'light layers are comfortable'
     if (isRainy) suggestion = 'bring an umbrella'
-    else if (isSnowy) suggestion = 'bundle up and wear layers'
-    else if (tempF !== undefined && tempF <= 45) suggestion = 'make sure to dress warm'
-    else if (tempF !== undefined && tempF >= 85) suggestion = 'opt for light, breathable clothing'
-    else if (windDescriptor === 'strong gusts of wind') suggestion = 'consider a windbreaker'
+    else if (isSnowy || (tempF !== undefined && tempF <= 45)) suggestion = 'bundle up in warm layers'
+    else if (tempF !== undefined && tempF >= 85) suggestion = 'choose light, breathable layers'
+    else if (windDescriptor === 'strong gusts of wind') suggestion = 'a windbreaker will be useful'
 
-    // Two sentences max; only temperature has an exact number
-    const s1 = `Expect ${skyPhrase}${windDescriptor ? ` with ${windDescriptor}` : ''} around ${tempPhrase}.`
+    // Two natural sentences; only temperature has an exact number
+    const s1 = `${capitalizeFirst(skyPhrase)}${windDescriptor ? ` with ${windDescriptor}` : ''}, near ${tempPhrase}.`
     const s2 = `${capitalizeFirst(suggestion)} today.`
     return `${s1} ${s2}`
   } catch {
@@ -162,7 +161,7 @@ function buildPrompt(events: SummaryEvent[]): string {
   return [
     'You are a concise local events assistant for Stillwater, Oklahoma.',
     'Summarize today\'s top events in one cohesive paragraph of ~120–130 words.',
-    'Do not include weather; write as a natural continuation after a weather lead. Avoid greetings, list formats, and transitional phrases like "Now", "Let\'s", "Here are".',
+    'Do not include weather; write as a natural continuation after a weather lead. Start directly with event facts; avoid greetings, ellipses, or transitional phrases like "Now", "Let\'s", "Here are", "and onto", "Also".',
     'Here are today\'s events:',
     list,
   ].join('\n')
@@ -187,9 +186,10 @@ export async function generateTodayEventsSummary(options?: { limit?: number; for
   const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
   const result = await model.generateContent(prompt)
   const text = result.response.text().trim()
-  const eventsText = sanitizeEventsLead(text || 'Top campus highlights today include a mix of activities and gatherings across OSU.')
-  // Single cohesive paragraph: 2-sentence weather lead + events continuation
-  const combined = `${weatherLead} ${eventsText}`
+  const eventsText = sanitizeEventsLead(text || 'A mix of activities and gatherings are planned across OSU today.')
+  // Single cohesive paragraph: 2-sentence weather lead + soft bridge + events continuation
+  const bridge = 'Around campus, '
+  const combined = `${weatherLead} ${bridge}${eventsText}`
   return limitWords(combined, 160)
 }
 
@@ -203,8 +203,10 @@ function limitWords(text: string, maxWords: number): string {
 function sanitizeEventsLead(text: string): string {
   // Collapse whitespace/newlines to single spaces
   let t = text.replace(/\s+/g, ' ').trim()
-  // Remove common transitional openings for a smoother continuation
-  t = t.replace(/^(?:Now[:,]?\s+|Now\s+let[’']?s\s+|Let[’']?s\s+|Here\s+(?:are|is)\s+|In\s+summary[:,]?\s+)/i, '')
+  // Strip leading ellipses or em-dashes
+  t = t.replace(/^(?:\u2026|\.\.\.|—|–)+\s*/u, '')
+  // Remove common transitional openings for a smoother continuation (case-insensitive)
+  t = t.replace(/^(?:and\s+onto\s+|and\s+on\s+to\s+|and\s+|also[:,]?\s+|now[:,]?\s+|meanwhile[:,]?\s+|then[:,]?\s+|here\s+(?:are|is)\s+|in\s+summary[:,]?\s+)/i, '')
   // Ensure first character is uppercase for proper sentence case
   if (t.length > 0) {
     t = t[0].toUpperCase() + t.slice(1)
