@@ -39,6 +39,24 @@ function formatEventDateTime(startTime: string | undefined, allDay: boolean | un
   return { date: dateStr, time: timeStr }
 }
 
+// Minimal OSU events JSON typing to avoid 'any'
+type OSUEventInstanceJson = {
+  start?: string
+  all_day?: boolean
+}
+
+type OSUEventJson = {
+  title?: string
+  location?: string
+  location_name?: string
+  ticket_cost?: string | null
+  event_instances?: Array<{ event_instance?: OSUEventInstanceJson }>
+}
+
+type OSUEventsResponseJson = {
+  events?: Array<{ event?: OSUEventJson }>
+}
+
 async function fetchRankedTodayEvents(limit: number): Promise<SummaryEvent[]> {
   const start = formatLocalDate(new Date())
   const params = new URLSearchParams({
@@ -56,15 +74,15 @@ async function fetchRankedTodayEvents(limit: number): Promise<SummaryEvent[]> {
   if (!res.ok) {
     throw new Error(`Events API failed: ${res.status}`)
   }
-  const data = await res.json() as { events?: Array<{ event?: any }> }
-  const items = (data.events ?? []).map(e => e.event).filter(Boolean)
+  const data: OSUEventsResponseJson = await res.json()
+  const items = (data.events ?? []).map(e => e.event).filter((e): e is OSUEventJson => Boolean(e))
 
-  const mapped: SummaryEvent[] = items.map((ev: any) => {
+  const mapped: SummaryEvent[] = items.map((ev) => {
     const inst = ev.event_instances?.[0]?.event_instance
     const { date, time } = formatEventDateTime(inst?.start, inst?.all_day)
     const location = ev.location_name || ev.location || 'Location TBD'
     const cost: string | undefined = (() => {
-      const c = (ev.ticket_cost as string | null) || ''
+      const c = ev.ticket_cost || ''
       if (!c) return undefined
       if (typeof c === 'string' && c.toLowerCase().includes('free')) return 'Free'
       return c
