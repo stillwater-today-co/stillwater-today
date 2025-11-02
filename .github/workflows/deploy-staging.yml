@@ -37,4 +37,5 @@ jobs:
           args: deploy --project ${{ secrets.STAGING_FIREBASE_PROJECT_ID }} --only hosting:staging
         env:
           GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
 
