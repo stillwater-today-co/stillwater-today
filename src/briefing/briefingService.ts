@@ -159,7 +159,7 @@ function buildPrompt(events: SummaryEvent[]): string {
     .join('\n')
 
   return [
-    'You are a concise local events assistant for Stillwater, Oklahoma.',
+    'You are a local events assistant for Stillwater, Oklahoma.',
     'Summarize today\'s top events in one cohesive paragraph of ~120–130 words.',
     'Do not include weather; write as a natural continuation after a weather lead. Start directly with event facts; avoid greetings, ellipses, or transitional phrases like "Now", "Let\'s", "Here are", "and onto", "Also".',
     'Here are today\'s events:',
