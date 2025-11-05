@@ -840,7 +840,7 @@
   border-radius: 16px;
   padding: 2rem;
   margin-bottom: 2rem;
-  min-height: 50vh;
+  min-height: auto;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -852,9 +852,10 @@
 .summary-text {
   color: #ffffff;
   font-size: 1.12rem;
-  line-height: 1.7;
+  line-height: 1.8;
   max-width: 840px;
   margin: 0 auto;
+  padding: 1rem 0;
 }
 
 .summary-header {

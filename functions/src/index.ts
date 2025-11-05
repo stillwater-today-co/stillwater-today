@@ -35,6 +35,7 @@ type WeatherData = {
     temperature: string;
     condition: string;
     wind: string;
+    humidity?: string;
   };
 };
 
@@ -117,57 +118,40 @@ async function fetchWeatherData(): Promise<WeatherData> {
       temperature: data?.current?.temperature || '',
       condition: data?.current?.condition || '',
       wind: data?.current?.wind || '',
+      humidity: data?.current?.humidity || '',
     },
   };
 }
 
-async function buildTwoSentenceWeatherSummary(): Promise<string> {
+async function generateWeatherSummary(apiKey: string): Promise<string> {
   try {
     const weather = await fetchWeatherData();
-    const tempStr = weather.current.temperature || ''; // e.g., "72°F"
-    const tempMatch = tempStr.match(/-?\d+/);
-    const tempF = tempMatch ? parseInt(tempMatch[0], 10) : undefined;
+    const tempStr = weather.current.temperature || '';
+    const condition = weather.current.condition || '';
+    const wind = weather.current.wind || '';
+    const humidity = weather.current.humidity || '';
 
-    const condition = (weather.current.condition || '').toLowerCase();
-    const wind = (weather.current.wind || '').toLowerCase(); // e.g., "8 mph N" or "22 mph W"
+    const weatherPrompt = [
+      'You are a friendly weather assistant for Stillwater, Oklahoma.',
+      'Write 2-3 natural, conversational sentences about today\'s weather with a clothing suggestion.',
+      'Be concise but informative. Use a warm, helpful tone.',
+      'Current weather data:',
+      `- Temperature: ${tempStr}`,
+      `- Conditions: ${condition}`,
+      `- Wind: ${wind}`,
+      `- Humidity: ${humidity}`,
+      '',
+      'Example style: "It\'s a beautiful sunny day with temps near 72°F and light breezes. Perfect weather for outdoor activities. A light jacket should be comfortable."',
+    ].join('\n');
 
-    // Derive descriptive phrases (avoid exact numbers except temperature)
-    const isRainy = /rain|shower|storm|thunder/.test(condition);
-    const isSnowy = /snow/.test(condition);
-    const isSunny = /sunny|clear/.test(condition);
-    const isCloudy = /cloud|overcast|mostly cloudy|partly cloudy/.test(condition);
-
-    let windDescriptor = '';
-    const windMphMatch = wind.match(/(\d{1,3})\s*mph/);
-    if (windMphMatch) {
-      const mph = parseInt(windMphMatch[1], 10);
-      if (mph >= 25) windDescriptor = 'strong gusts of wind';
-      else if (mph >= 15) windDescriptor = 'a noticeable breeze';
-      else if (mph >= 5) windDescriptor = 'a light breeze';
-    }
-
-    let skyPhrase = 'calm skies';
-    if (isRainy) skyPhrase = 'showers at times';
-    else if (isSnowy) skyPhrase = 'wintry skies';
-    else if (isSunny) skyPhrase = 'mostly sunny skies';
-    else if (isCloudy) skyPhrase = 'mostly cloudy skies';
-
-    const tempPhrase = tempF !== undefined ? `${tempF}°F` : 'seasonal temperatures';
-
-    // Clothing suggestion
-    let suggestion = 'light layers are comfortable';
-    if (isRainy) suggestion = 'bring an umbrella';
-    else if (isSnowy || (tempF !== undefined && tempF <= 45)) suggestion = 'bundle up in warm layers';
-    else if (tempF !== undefined && tempF >= 85) suggestion = 'choose light, breathable layers';
-    else if (windDescriptor === 'strong gusts of wind') suggestion = 'a windbreaker will be useful';
-
-    // Two natural sentences; only temperature has an exact number
-    const s1 = `${capitalizeFirst(skyPhrase)}${windDescriptor ? ` with ${windDescriptor}` : ''}, near ${tempPhrase}.`;
-    const s2 = `${capitalizeFirst(suggestion)} today.`;
-    return `${s1} ${s2}`;
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    const result = await model.generateContent(weatherPrompt);
+    const text = result.response.text().trim();
+    
+    return text || 'Expect typical seasonal weather today. Dress comfortably for changing conditions.';
   } catch (error) {
-    // Fallback if weather fails
-    functions.logger.warn('Weather fetch failed:', error);
+    functions.logger.warn('Weather summary generation failed:', error);
     return 'Expect typical seasonal weather today. Dress comfortably for changing conditions.';
   }
 }
@@ -183,18 +167,12 @@ function buildPrompt(events: SummaryEvent[]): string {
 
   return [
     'You are a local events assistant for Stillwater, Oklahoma.',
-    'Summarize today\'s top events in one cohesive paragraph of ~120–130 words.',
+    'Summarize today\'s top events in one cohesive paragraph of approximately 150-160 words.',
     'Do not include weather; write as a natural continuation after a weather lead. Start directly with event facts; avoid greetings, ellipses, or transitional phrases like "Now", "Let\'s", "Here are", "and onto", "Also".',
+    'Be descriptive and engaging while covering the variety of events happening today.',
     'Here are today\'s events:',
     list,
   ].join('\n');
-}
-
-function limitWords(text: string, maxWords: number): string {
-  const words = text.split(/\s+/).filter(Boolean);
-  if (words.length <= maxWords) return text;
-  const truncated = words.slice(0, maxWords).join(' ');
-  return /[.!?]$/.test(truncated) ? truncated : `${truncated}.`;
 }
 
 function sanitizeEventsLead(text: string): string {
@@ -211,11 +189,6 @@ function sanitizeEventsLead(text: string): string {
   return t;
 }
 
-function capitalizeFirst(s: string): string {
-  if (!s) return s;
-  return s[0].toUpperCase() + s.slice(1);
-}
-
 /**
  * Callable HTTPS function to generate AI summary
  * Call from client: const result = await functions.httpsCallable('generateAISummary')({ limit: 10, forceRefresh: true })
@@ -225,6 +198,9 @@ export const generateAISummary = functions.https.onCall(async (data, context) =>
   const forceRefresh = data.forceRefresh ?? false;
   
   try {
+    // Record caller identity (if any) for observability and to satisfy linting
+    const callerUid = context?.auth?.uid ?? 'anonymous';
+    functions.logger.info('generateAISummary invoked', { callerUid });
     // Get API key from environment variable
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
@@ -252,10 +228,10 @@ export const generateAISummary = functions.https.onCall(async (data, context) =>
     }
 
     // Generate new summary
-    const [weatherLead, events] = await Promise.all([
-      buildTwoSentenceWeatherSummary(),
-      fetchRankedTodayEvents(limit)
-    ]);
+    const events = await fetchRankedTodayEvents(limit);
+
+    // Generate weather summary
+    const weatherLead = await generateWeatherSummary(apiKey);
 
     // If no events, return a friendly message rather than calling the model.
     if (events.length === 0) {
@@ -280,10 +256,9 @@ export const generateAISummary = functions.https.onCall(async (data, context) =>
     const text = result.response.text().trim();
     const eventsText = sanitizeEventsLead(text || 'A mix of activities and gatherings are planned across OSU today.');
     
-    // Single cohesive paragraph: 2-sentence weather lead + soft bridge + events continuation
+    // Single cohesive paragraph: weather lead + soft bridge + events continuation
     const bridge = 'Around campus, ';
-    const combined = `${weatherLead} ${bridge}${eventsText}`;
-    const finalSummary = limitWords(combined, 160);
+    const finalSummary = `${weatherLead} ${bridge}${eventsText}`;
 
     // Cache the result
     await cacheRef.set({
