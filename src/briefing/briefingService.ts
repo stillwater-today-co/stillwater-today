@@ -1,222 +1,30 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
-import { fetchWeatherData } from '../services/weatherService'
+import { getFunctions, httpsCallable } from 'firebase/functions'
 
-function getApiKey(): string {
-  const key = import.meta.env.VITE_GEMINI_API_KEY as string | undefined
-  if (!key) {
-    throw new Error('Missing VITE_GEMINI_API_KEY in environment')
-  }
-  return key
-}
-
-type SummaryEvent = {
-  title: string
-  date: string
-  time: string
-  location: string
-  cost?: string
-}
-
-function formatLocalDate(date: Date): string {
-  const y = String(date.getFullYear())
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  const d = String(date.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
-}
-
-function formatEventDateTime(startTime: string | undefined, allDay: boolean | undefined): { date: string; time: string } {
-  if (!startTime) {
-    return { date: 'Today', time: 'Time TBD' }
-  }
-  const dt = new Date(startTime)
-  if (isNaN(dt.getTime())) {
-    return { date: 'Today', time: 'Time TBD' }
-  }
-  const today = new Date()
-  const isToday = dt.toDateString() === today.toDateString()
-  const dateStr = isToday ? 'Today' : dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
-  const timeStr = allDay ? 'All Day' : dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
-  return { date: dateStr, time: timeStr }
-}
-
-// Minimal OSU events JSON typing to avoid 'any'
-type OSUEventInstanceJson = {
-  start?: string
-  all_day?: boolean
-}
-
-type OSUEventJson = {
-  title?: string
-  location?: string
-  location_name?: string
-  ticket_cost?: string | null
-  event_instances?: Array<{ event_instance?: OSUEventInstanceJson }>
-}
-
-type OSUEventsResponseJson = {
-  events?: Array<{ event?: OSUEventJson }>
-}
-
-async function fetchRankedTodayEvents(limit: number): Promise<SummaryEvent[]> {
-  const start = formatLocalDate(new Date())
-  const params = new URLSearchParams({
-    start,
-    days: '1',
-    pp: '20',
-    sort: 'ranking',
-    direction: 'desc',
-    distinct: 'true',
-    for: 'main',
-  })
-
-  const url = `https://events.okstate.edu/api/2/events?${params.toString()}`
-  const res = await fetch(url)
-  if (!res.ok) {
-    throw new Error(`Events API failed: ${res.status}`)
-  }
-  const data: OSUEventsResponseJson = await res.json()
-  const items = (data.events ?? []).map(e => e.event).filter((e): e is OSUEventJson => Boolean(e))
-
-  const mapped: SummaryEvent[] = items.map((ev) => {
-    const inst = ev.event_instances?.[0]?.event_instance
-    const { date, time } = formatEventDateTime(inst?.start, inst?.all_day)
-    const location = ev.location_name || ev.location || 'Location TBD'
-    const cost: string | undefined = (() => {
-      const c = ev.ticket_cost || ''
-      if (!c) return undefined
-      if (typeof c === 'string' && c.toLowerCase().includes('free')) return 'Free'
-      return c
-    })()
-    return {
-      title: String(ev.title ?? 'Untitled Event'),
-      date,
-      time,
-      location,
-      cost,
-    }
-  })
-
-  return mapped.slice(0, Math.max(0, limit))
-}
-
-async function buildTwoSentenceWeatherSummary(): Promise<string> {
-  try {
-    const weather = await fetchWeatherData(false)
-    const tempStr = weather.current.temperature || '' // e.g., "72°F"
-    const tempMatch = tempStr.match(/-?\d+/)
-    const tempF = tempMatch ? parseInt(tempMatch[0], 10) : undefined
-
-    const condition = (weather.current.condition || '').toLowerCase()
-    const wind = (weather.current.wind || '').toLowerCase() // e.g., "8 mph N" or "22 mph W"
-
-    // Derive descriptive phrases (avoid exact numbers except temperature)
-    const isRainy = /rain|shower|storm|thunder/.test(condition)
-    const isSnowy = /snow/.test(condition)
-    const isSunny = /sunny|clear/.test(condition)
-    const isCloudy = /cloud|overcast|mostly cloudy|partly cloudy/.test(condition)
-
-    let windDescriptor = ''
-    const windMphMatch = wind.match(/(\d{1,3})\s*mph/)
-    if (windMphMatch) {
-      const mph = parseInt(windMphMatch[1], 10)
-      if (mph >= 25) windDescriptor = 'strong gusts of wind'
-      else if (mph >= 15) windDescriptor = 'a noticeable breeze'
-      else if (mph >= 5) windDescriptor = 'a light breeze'
-    }
-
-    let skyPhrase = 'calm skies'
-    if (isRainy) skyPhrase = 'showers at times'
-    else if (isSnowy) skyPhrase = 'wintry skies'
-    else if (isSunny) skyPhrase = 'mostly sunny skies'
-    else if (isCloudy) skyPhrase = 'mostly cloudy skies'
-
-    const tempPhrase = tempF !== undefined ? `${tempF}°F` : 'seasonal temperatures'
-
-    // Clothing suggestion
-    let suggestion = 'light layers are comfortable'
-    if (isRainy) suggestion = 'bring an umbrella'
-    else if (isSnowy || (tempF !== undefined && tempF <= 45)) suggestion = 'bundle up in warm layers'
-    else if (tempF !== undefined && tempF >= 85) suggestion = 'choose light, breathable layers'
-    else if (windDescriptor === 'strong gusts of wind') suggestion = 'a windbreaker will be useful'
-
-    // Two natural sentences; only temperature has an exact number
-    const s1 = `${capitalizeFirst(skyPhrase)}${windDescriptor ? ` with ${windDescriptor}` : ''}, near ${tempPhrase}.`
-    const s2 = `${capitalizeFirst(suggestion)} today.`
-    return `${s1} ${s2}`
-  } catch {
-    // Fallback if weather fails
-    return 'Expect typical seasonal weather today. Dress comfortably for changing conditions.'
-  }
-}
-
-function buildPrompt(events: SummaryEvent[]): string {
-  if (events.length === 0) {
-    return 'No OSU events are listed for today in Stillwater.'
-  }
-
-  const list = events
-    .map(e => `- ${e.title} — ${e.date} ${e.time} @ ${e.location}${e.cost ? ` (${e.cost})` : ''}`)
-    .join('\n')
-
-  return [
-    'You are a local events assistant for Stillwater, Oklahoma.',
-    'Summarize today\'s top events in one cohesive paragraph of ~120–130 words.',
-    'Do not include weather; write as a natural continuation after a weather lead. Start directly with event facts; avoid greetings, ellipses, or transitional phrases like "Now", "Let\'s", "Here are", "and onto", "Also".',
-    'Here are today\'s events:',
-    list,
-  ].join('\n')
-}
-
+/**
+ * Generate today's events summary using Firebase Cloud Function
+ * This calls the backend function which handles AI generation server-side
+ */
 export async function generateTodayEventsSummary(options?: { limit?: number; forceRefresh?: boolean }): Promise<string> {
   const limit = options?.limit ?? 10
-  // forceRefresh is unused now since we always fetch ranked for today
-  const [weatherLead, events] = await Promise.all([
-    buildTwoSentenceWeatherSummary(),
-    fetchRankedTodayEvents(limit)
-  ])
+  const forceRefresh = options?.forceRefresh ?? false
 
-  // If no events, return a friendly message rather than calling the model.
-  if (events.length === 0) {
-    return `${weatherLead} There are no OSU events listed for today in Stillwater.`
+  try {
+    const functions = getFunctions()
+    const generateSummary = httpsCallable<
+      { limit: number; forceRefresh: boolean },
+      { summary: string; cached: boolean }
+    >(functions, 'generateAISummary')
+
+    const result = await generateSummary({ limit, forceRefresh })
+    return result.data.summary
+  } catch (error) {
+    console.error('Error calling generateAISummary function:', error)
+    throw new Error(
+      error instanceof Error 
+        ? error.message 
+        : 'Failed to generate summary. Please try again later.'
+    )
   }
-
-  const prompt = buildPrompt(events)
-
-  const genAI = new GoogleGenerativeAI(getApiKey())
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
-  const result = await model.generateContent(prompt)
-  const text = result.response.text().trim()
-  const eventsText = sanitizeEventsLead(text || 'A mix of activities and gatherings are planned across OSU today.')
-  // Single cohesive paragraph: 2-sentence weather lead + soft bridge + events continuation
-  const bridge = 'Around campus, '
-  const combined = `${weatherLead} ${bridge}${eventsText}`
-  return limitWords(combined, 160)
-}
-
-function limitWords(text: string, maxWords: number): string {
-  const words = text.split(/\s+/).filter(Boolean)
-  if (words.length <= maxWords) return text
-  const truncated = words.slice(0, maxWords).join(' ')
-  return /[.!?]$/.test(truncated) ? truncated : `${truncated}.`
-}
-
-function sanitizeEventsLead(text: string): string {
-  // Collapse whitespace/newlines to single spaces
-  let t = text.replace(/\s+/g, ' ').trim()
-  // Strip leading ellipses or em-dashes
-  t = t.replace(/^(?:\u2026|\.\.\.|—|–)+\s*/u, '')
-  // Remove common transitional openings for a smoother continuation (case-insensitive)
-  t = t.replace(/^(?:and\s+onto\s+|and\s+on\s+to\s+|and\s+|also[:,]?\s+|now[:,]?\s+|meanwhile[:,]?\s+|then[:,]?\s+|here\s+(?:are|is)\s+|in\s+summary[:,]?\s+)/i, '')
-  // Ensure first character is uppercase for proper sentence case
-  if (t.length > 0) {
-    t = t[0].toUpperCase() + t.slice(1)
-  }
-  return t
-}
-
-function capitalizeFirst(s: string): string {
-  if (!s) return s
-  return s[0].toUpperCase() + s.slice(1)
 }
 
 

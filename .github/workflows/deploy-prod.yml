@@ -19,6 +19,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Install Functions dependencies
+        run: npm ci --prefix functions
       - name: Write .env (production)
         run: |
           cat << 'EOF' > .env
@@ -30,11 +32,17 @@ jobs:
           VITE_FIREBASE_APP_ID=${{ secrets.PRODUCTION_FIREBASE_APP_ID }}
           VITE_FIREBASE_MEASUREMENT_ID=${{ secrets.PRODUCTION_FIREBASE_MEASUREMENT_ID }}
           EOF
+      - name: Write Functions .env (production)
+        run: |
+          mkdir -p functions
+          cat << 'EOF' > functions/.env
+          GEMINI_API_KEY=${{ secrets.PRODUCTION_GEMINI_API_KEY }}
+          EOF
       - run: npm run build
-      - name: Deploy to Firebase Hosting (prod target)
+      - name: Deploy to Firebase Hosting & Functions (prod)
         uses: w9jds/firebase-action@v13.16.0
         with:
-          args: deploy --project ${{ secrets.PRODUCTION_FIREBASE_PROJECT_ID }} --only hosting:prod
+          args: deploy --project ${{ secrets.PRODUCTION_FIREBASE_PROJECT_ID }} --only hosting:prod,functions
         env:
           GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
