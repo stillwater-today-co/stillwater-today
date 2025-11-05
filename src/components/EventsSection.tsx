@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react'
-import { 
-  fetchOSUEvents, 
-  filterAndSortEvents,
-  getEventCategories, 
-  loadMoreEvents, 
-  loadMoreCategoryEvents,
-  hasMoreEventsAvailable,
-  getRemainingEventsCount 
-} from '../services/eventsService'
-import type { ProcessedEvent } from '../services/eventsService'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useFavorites } from '../hooks/useFavorites'
+import type { ProcessedEvent } from '../services/eventsService'
+import {
+  fetchOSUEvents,
+  filterAndSortEvents,
+  getEventCategories,
+  getRemainingEventsCount,
+  hasMoreEventsAvailable,
+  loadMoreCategoryEvents,
+  loadMoreEvents
+} from '../services/eventsService'
 import FavoritesSection from './FavoritesSection'
 import Pagination from './Pagination'
 
@@ -26,7 +26,7 @@ const EventsSection: React.FC = () => {
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
-  const [eventsPerPage] = useState(12) // Show 12 events per page
+  const [eventsPerPage] = useState(6) // Show 6 events per page (reduced for faster page loads)
   
   // Favorites hook
   const { toggleFavorite, isFavorited, isAuthenticated } = useFavorites()
