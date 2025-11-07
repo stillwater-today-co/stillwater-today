@@ -29,7 +29,26 @@ const EventsSection: React.FC = () => {
   const [eventsPerPage] = useState(6) // Show 6 events per page (reduced for faster page loads)
   
   // Favorites hook
-  const { toggleFavorite, isFavorited, isAuthenticated } = useFavorites()
+  const { toggleFavorite, isFavorited, isPending, isAuthenticated } = useFavorites()
+
+  // Helper to merge events and remove duplicates by id while preserving order (prev first)
+  const mergeUniqueEvents = (prev: ProcessedEvent[], additions: ProcessedEvent[]) => {
+    const seen = new Set<number>()
+    const merged: ProcessedEvent[] = []
+    for (const e of prev) {
+      if (!seen.has(e.id)) {
+        merged.push(e)
+        seen.add(e.id)
+      }
+    }
+    for (const e of additions) {
+      if (!seen.has(e.id)) {
+        merged.push(e)
+        seen.add(e.id)
+      }
+    }
+    return merged
+  }
 
   // Auto-load more events when filtered results are too few
   useEffect(() => {
@@ -43,12 +62,13 @@ const EventsSection: React.FC = () => {
           console.log(`Auto-loading more ${categoryFilter} events due to low count`)
           const newEvents = await loadMoreCategoryEvents(categoryFilter, events)
           if (newEvents.length > 0) {
-            setEvents(prevEvents => [...prevEvents, ...newEvents])
-            
-            // Update available categories
-            const allEvents = [...events, ...newEvents]
-            const categories = getEventCategories(allEvents)
-            setAvailableCategories(categories)
+            setEvents(prevEvents => {
+              const merged = mergeUniqueEvents(prevEvents, newEvents)
+              // Update available categories based on merged set
+              const categories = getEventCategories(merged)
+              setAvailableCategories(categories)
+              return merged
+            })
           }
         } catch (err) {
           console.error('Auto-load more events failed:', err)
@@ -144,12 +164,12 @@ const EventsSection: React.FC = () => {
         }
 
         if (newEvents.length > 0) {
-          setEvents(prevEvents => [...prevEvents, ...newEvents])
-          
-          // Update available categories with new events
-          const updatedEvents = [...events, ...newEvents]
-          const categories = getEventCategories(updatedEvents)
-          setAvailableCategories(categories)
+          setEvents(prevEvents => {
+            const merged = mergeUniqueEvents(prevEvents, newEvents)
+            const categories = getEventCategories(merged)
+            setAvailableCategories(categories)
+            return merged
+          })
         }
       } catch (err) {
         console.error('Failed to load more events:', err)
@@ -388,11 +408,12 @@ const EventsSection: React.FC = () => {
                     onClick={() => toggleFavorite(event.id)}
                     className={`event-btn save-btn ${isFavorited(event.id) ? 'favorited' : ''}`}
                     title={isFavorited(event.id) ? 'Remove from favorites' : 'Favorite this event'}
+                    aria-pressed={isFavorited(event.id)}
                   >
                     <span className="save-icon">
                       {isFavorited(event.id) ? '⭐' : '☆'}
                     </span>
-                    {isFavorited(event.id) ? 'Favorited' : 'Favorite'}
+                    {isPending && isPending(event.id) ? 'Favoriting...' : (isFavorited(event.id) ? 'Favorited' : 'Favorite')}
                   </button>
                 ) : (
                   <button
