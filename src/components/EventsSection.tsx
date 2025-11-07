@@ -2,13 +2,13 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { useFavorites } from '../hooks/useFavorites'
 import type { ProcessedEvent } from '../services/eventsService'
 import {
-  fetchOSUEvents,
-  filterAndSortEvents,
-  getEventCategories,
-  getRemainingEventsCount,
-  hasMoreEventsAvailable,
-  loadMoreCategoryEvents,
-  loadMoreEvents
+    fetchOSUEvents,
+    filterAndSortEvents,
+    getEventCategories,
+    getRemainingEventsCount,
+    hasMoreEventsAvailable,
+    loadMoreCategoryEvents,
+    loadMoreEvents
 } from '../services/eventsService'
 import FavoritesSection from './FavoritesSection'
 import Pagination from './Pagination'
@@ -387,21 +387,21 @@ const EventsSection: React.FC = () => {
                   <button
                     onClick={() => toggleFavorite(event.id)}
                     className={`event-btn save-btn ${isFavorited(event.id) ? 'favorited' : ''}`}
-                    title={isFavorited(event.id) ? 'Remove from favorites' : 'Save to favorites'}
+                    title={isFavorited(event.id) ? 'Remove from favorites' : 'Favorite this event'}
                   >
                     <span className="save-icon">
                       {isFavorited(event.id) ? '⭐' : '☆'}
                     </span>
-                    {isFavorited(event.id) ? 'Saved' : 'Save'}
+                    {isFavorited(event.id) ? 'Favorited' : 'Favorite'}
                   </button>
                 ) : (
                   <button
                     className="event-btn save-btn disabled"
                     disabled
-                    title="Sign in to save events"
+                    title="Sign in to favorite events"
                   >
                     <span className="save-icon">☆</span>
-                    Save
+                    Favorite
                   </button>
                 )}
               </div>
