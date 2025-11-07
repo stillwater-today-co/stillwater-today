@@ -135,6 +135,7 @@ async function generateWeatherSummary(apiKey: string): Promise<string> {
       'You are a friendly weather assistant for Stillwater, Oklahoma.',
       'Write 2-3 natural, conversational sentences about today\'s weather with a clothing suggestion.',
       'Be concise but informative. Use a warm, helpful tone.',
+      'IMPORTANT: Include the specific temperature number in your response (e.g., "72°F" or "high of 75°F").',
       'Current weather data:',
       `- Temperature: ${tempStr}`,
       `- Conditions: ${condition}`,
