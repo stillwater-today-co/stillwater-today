@@ -1,0 +1,22 @@
+# Compiled JavaScript files
+lib/
+*.js
+*.js.map
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Node.js dependency directories
+node_modules/
+
+# Firebase emulator data
+.firebase/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Runtime config (legacy - deprecated)
+.runtimeconfig.json
+

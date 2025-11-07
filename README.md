@@ -5,6 +5,8 @@ A modern community information platform for Stillwater, Oklahoma, built with Rea
 ## 🚀 Features
 
 - **AI-Powered Daily Summaries** - Intelligent briefings of local news and happenings
+  - Uses Google Gemini 2.0 Flash (exp) to summarize top-ranked OSU events for today
+  - Prepends a concise, 2-sentence weather overview with a clothing suggestion
 - **Real-Time Weather** - Integration with National Weather Service API for Stillwater
   - Current conditions with detailed metrics
   - 5-day forecast with hourly updates
@@ -45,6 +47,8 @@ Stillwater Today serves as a community hub that:
 │   │   └── Feedback.tsx     # User feedback form
 │   ├── services/            # External API integrations
 │   │   └── weatherService.ts # National Weather Service API
+│   ├── briefing/            # AI summary integration
+│   │   └── briefingService.ts # Client for AI summary Cloud Function
 │   ├── firebase/            # Firebase configuration
 │   │   ├── config.ts        # Firebase initialization
 │   │   ├── firestore.ts     # Database operations
@@ -58,6 +62,12 @@ Stillwater Today serves as a community hub that:
 │   │   └── AuthContext.tsx  # User authentication state
 │   └── hooks/               # Custom React hooks
 │       └── useAuth.ts       # Authentication hook
+├── functions/               # Firebase Cloud Functions (server-side)
+│   ├── src/
+│   │   └── index.ts        # AI summary generation function
+│   ├── package.json        # Functions dependencies
+│   ├── tsconfig.json       # TypeScript config for functions
+│   └── README.md           # Functions documentation
 ├── public/                  # Static assets
 │   ├── banner.png          # Site banner image
 │   ├── favicon.ico         # Browser icon
@@ -66,18 +76,21 @@ Stillwater Today serves as a community hub that:
 │   ├── ci.yml              # Build and test checks
 │   ├── deploy-staging.yml  # Staging deployment
 │   └── deploy-prod.yml     # Production deployment
-└── firebase.json           # Firebase hosting config
+└── firebase.json           # Firebase hosting & functions config
 ```
 
 ## 🛠️ Technology Stack
 
 - **Frontend**: React 19, TypeScript, Vite
 - **Styling**: CSS3 with modern dark theme (black/gray/orange)
-- **Backend**: Firebase (Firestore, Auth, Storage)
+- **Backend**: Firebase (Firestore, Auth, Storage, Cloud Functions)
 - **APIs**: National Weather Service (NWS) for weather data
+- **AI**: Google Gemini 2.0 Flash (experimental) for daily summaries
+  - Server-side generation via Firebase Cloud Functions
+  - Automatic caching and rate limiting
 - **Build Tool**: Vite for fast development and builds
 - **CI/CD**: GitHub Actions
-- **Deployment**: Firebase Hosting
+- **Deployment**: Firebase Hosting & Cloud Functions
 - **Code Quality**: ESLint, TypeScript strict mode
 
 ## 🚦 Getting Started
@@ -114,13 +127,43 @@ Stillwater Today serves as a community hub that:
    VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
    ```
 
-4. **Start development server**
+4. **Set up Firebase Functions**
+   ```bash
+   cd functions
+   npm install
+   ```
+   
+   Create a `.env` file in the `functions/` directory:
+   ```bash
+   echo 'GEMINI_API_KEY="your_google_ai_studio_key"' > .env
+   cd ..
+   ```
+   
+   Get your Gemini API key from: https://aistudio.google.com/app/apikey
+
+5. **Start development server**
    ```bash
    npm run dev
    ```
 
-5. **Open your browser**
+6. **Open your browser**
    Navigate to `http://localhost:5173`
+
+### Functions Local Development (Optional)
+
+To test Firebase Functions locally:
+
+1. **Ensure you have created the `.env` file** in `functions/` directory with your `GEMINI_API_KEY`
+
+2. **Start the Firebase emulator**
+   ```bash
+   cd functions
+   npm run serve
+   ```
+
+The emulator automatically loads environment variables from `.env` file.
+
+See `functions/README.md` for detailed function documentation.
 
 ### Available Scripts
 
@@ -160,6 +203,34 @@ The application integrates with the National Weather Service API to provide:
 - **Location-Specific**: Data for Stillwater, Oklahoma (36.1156° N, 97.0584° W)
 
 Weather data is cached in Firebase to improve performance and reduce API calls.
+
+## 🤖 AI Daily Summary
+
+The application generates intelligent daily summaries using a **Firebase Cloud Function** (server-side):
+
+### Features
+- Summarizes the top 10 ranked OSU events for the current day using the OSU Events API ranked query
+- Adds a 2-sentence weather lead (temperature as an exact number; qualitative for other metrics) with a clothing suggestion
+- **Server-side generation** ensures API key security and enables caching
+- **Automatic caching** - Summaries are cached for 1 hour to reduce API costs
+- **Force refresh** option available for users who want the latest data
+
+### Technical Details
+- Model: Google Gemini 2.0 Flash (experimental) via `@google/generative-ai`
+- Implementation: Firebase Cloud Function (`generateAISummary`)
+- Runtime: Node.js 20
+- Configuration: Environment variables via `.env` file in `functions/` directory
+- Caching: Stored in Firestore `briefings/{date}` collection
+- Events source: `https://events.okstate.edu/api/2/events?start=YYYY-MM-DD&days=1&pp=20&sort=ranking&direction=desc&distinct=true&for=main`
+
+### Benefits of Cloud Functions Approach
+- 🔒 **Security**: API keys never exposed to clients
+- 💰 **Cost Control**: Server-side caching reduces API calls
+- 📊 **Monitoring**: Access to detailed logs and metrics
+- ⚡ **Performance**: Cached responses for faster loading
+- 🔄 **Reliability**: Built-in retry logic and error handling
+
+See `FIREBASE_FUNCTIONS_MIGRATION.md` for migration details and `functions/README.md` for function documentation.
 
 ## 📊 Firebase Data Structure
 

@@ -1,9 +1,8 @@
 import {
-  deleteUser,
-  EmailAuthProvider,
-  reauthenticateWithCredential,
-  updateEmail,
-  updatePassword
+    deleteUser,
+    EmailAuthProvider,
+    reauthenticateWithCredential,
+    updatePassword
 } from 'firebase/auth'
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -13,14 +12,11 @@ const Profile: React.FC = () => {
   const user = auth.currentUser
   const navigate = useNavigate()
 
-  const [email, setEmail] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [currentPassword, setCurrentPassword] = useState('')
   const [status, setStatus] = useState<string>('')
   const [error, setError] = useState<string>('')
-  const [emailStatus, setEmailStatus] = useState<string>('')
-  const [emailError, setEmailError] = useState<string>('')
   const [passwordStatus, setPasswordStatus] = useState<string>('')
   const [passwordError, setPasswordError] = useState<string>('')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -28,8 +24,6 @@ const Profile: React.FC = () => {
   const clearMessages = () => {
     setStatus('')
     setError('')
-    setEmailStatus('')
-    setEmailError('')
     setPasswordStatus('')
     setPasswordError('')
   }
@@ -48,32 +42,6 @@ const Profile: React.FC = () => {
         return await action()
       }
       throw e
-    }
-  }
-
-  const handleUpdateEmail = async (e: React.FormEvent) => {
-    e.preventDefault()
-    clearMessages()
-  try {
-      if (!auth.currentUser) throw new Error('Not signed in')
-      // Require current password and reauthenticate, then update the email directly
-      if (!currentPassword) {
-        setError('Please enter your current password to confirm this change.')
-        return
-      }
-      const cred = EmailAuthProvider.credential(auth.currentUser.email!, currentPassword)
-      await reauthenticateWithCredential(auth.currentUser, cred)
-      await updateEmail(auth.currentUser, email)
-      setEmailStatus('Email updated. Please check your new email for verification if required.')
-      setCurrentPassword('')
-      setEmail('')
-    } catch (err: unknown) {
-      const error = err as { code?: string; message?: string }
-      if (error?.code === 'auth/requires-recent-login') {
-        setEmailError('Recent login required. Please enter your current password above and try again.')
-      } else {
-        setEmailError(error?.message || 'Failed to update email')
-      }
     }
   }
 
@@ -132,32 +100,6 @@ const Profile: React.FC = () => {
       </header>
 
       <main className="scrollable-content">
-        <div className="card profile-card">
-          <h2>Change Email</h2>
-          <form onSubmit={handleUpdateEmail}>
-            <div className="field">
-              <label>Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                required
-              />
-            </div>
-            <div className="actions">
-              <button type="submit" className="primary">Send Verification to New Email</button>
-            </div>
-            <div className="hint">This sends a verification to the entered email and updates after confirmation. Your current password is required for this change.</div>
-            {(emailStatus || emailError) && (
-              <div style={{ marginTop: 12 }}>
-                {emailStatus && <div className="status success">{emailStatus}</div>}
-                {emailError && <div className="status error">{emailError}</div>}
-              </div>
-            )}
-          </form>
-        </div>
-
         <div className="card profile-card">
           <h2>Change Password</h2>
           <form onSubmit={handleUpdatePassword}>
