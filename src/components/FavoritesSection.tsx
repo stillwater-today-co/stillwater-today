@@ -25,8 +25,8 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({ onClose }) => {
         return
       }
 
-      // Get ALL events from cache (not just the subset)
-      let cachedEvents = getCachedEvents()
+  // Get ALL events from cache (not just the subset)
+  const cachedEvents = getCachedEvents()
       let foundEvents: ProcessedEvent[] = []
       
       if (cachedEvents && cachedEvents.length > 0) {
