@@ -127,14 +127,18 @@ const EventsSection: React.FC = () => {
   // Filter events and apply pagination - sort by popularity for first 2 pages
   const shouldSortByPopularity = currentPage <= 2
   const allFilteredEvents = filterAndSortEvents(events, dateFilter, categoryFilter, shouldSortByPopularity)
+  const MAX_EVENTS = 60 // Cap the number of events shown for general (no-filter) listing
+  const isGeneralListing = dateFilter === 'all' && categoryFilter === 'all'
+  // When in general listing, cap the displayed events to MAX_EVENTS
+  const displayedAllFilteredEvents = isGeneralListing ? allFilteredEvents.slice(0, MAX_EVENTS) : allFilteredEvents
   
   // Debug logging
   console.log('Filter State:', { dateFilter, categoryFilter, totalEvents: events.length, filteredEvents: allFilteredEvents.length })
   
-  const totalPages = Math.ceil(allFilteredEvents.length / eventsPerPage)
+  const totalPages = Math.ceil(displayedAllFilteredEvents.length / eventsPerPage)
   const startIndex = (currentPage - 1) * eventsPerPage
   const endIndex = startIndex + eventsPerPage
-  const filteredEvents = allFilteredEvents.slice(startIndex, endIndex)
+  const filteredEvents = displayedAllFilteredEvents.slice(startIndex, endIndex)
   
   // Removed remaining-count UI; helpers no longer needed here
 
@@ -145,12 +149,15 @@ const EventsSection: React.FC = () => {
 
   // Handle page change - load more events if needed
   const handlePageChange = async (page: number) => {
-    const allFilteredEvents = filterAndSortEvents(events, dateFilter, categoryFilter, page <= 2)
-    const totalPages = Math.ceil(allFilteredEvents.length / eventsPerPage)
+  const unclampedFiltered = filterAndSortEvents(events, dateFilter, categoryFilter, page <= 2)
+    const isGeneral = dateFilter === 'all' && categoryFilter === 'all'
+    const displayableCount = isGeneral ? Math.min(unclampedFiltered.length, MAX_EVENTS) : unclampedFiltered.length
+    const displayTotalPages = Math.ceil(displayableCount / eventsPerPage)
     const hasMoreAvailable = hasMoreEventsAvailable()
-    
-    // If we're going to the last page and there are more events available, load more
-    if (page === totalPages && hasMoreAvailable && !loadingMore) {
+
+    // If we're going to the last display page and there are more events available, load more.
+    // For the general listing we only load more while the underlying filtered count is less than MAX_EVENTS.
+    if (page === displayTotalPages && hasMoreAvailable && !loadingMore && (!isGeneral || unclampedFiltered.length < MAX_EVENTS)) {
       try {
         setLoadingMore(true)
         let newEvents: ProcessedEvent[]
