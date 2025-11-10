@@ -20,85 +20,35 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({ onClose }) => {
     const loadFavoriteEvents = async () => {
       if (favorites.length === 0) {
         setFavoriteEvents([])
+        setLoading(false)
         return
       }
 
-      try {
-        setLoading(true)
-        
-        // Get ALL events from cache (not just the subset)
-        let cachedEvents = getCachedEvents()
-        let foundEvents: ProcessedEvent[] = []
-        let missingEventIds: number[] = []
-        
-        if (cachedEvents && cachedEvents.length > 0) {
-          // Search through ALL cached events
-          foundEvents = cachedEvents.filter(event => favorites.includes(event.id))
-          missingEventIds = favorites.filter(id => !foundEvents.some(event => event.id === id))
-        } else {
-          missingEventIds = [...favorites]
-        }
-        
-        // Check recently favorited events for missing ones
-        missingEventIds.forEach(id => {
-          const recentEvent = recentlyFavoritedEvents.get(id)
-          if (recentEvent && !foundEvents.some(e => e.id === id)) {
-            foundEvents.push(recentEvent)
-          }
-        })
-        
-        // Update missing list after checking recent events
-        missingEventIds = favorites.filter(id => !foundEvents.some(event => event.id === id))
-        
-        // If we have missing events, try to load more pages to find them
-        if (missingEventIds.length > 0) {
-          const { loadMoreEvents, getCachedEvents } = await import('../services/eventsService')
-          try {
-            // Try loading more events to find the missing ones
-            // Load multiple pages if needed
-            let attempts = 0
-            const maxAttempts = 3
-            
-            while (missingEventIds.length > 0 && attempts < maxAttempts) {
-              const currentCached = getCachedEvents() || []
-              
-              // Load more events
-              try {
-                await loadMoreEvents(currentCached)
-              } catch {
-                // If no more events available, break
-                break
-              }
-              
-              // Check cache again after loading more
-              cachedEvents = getCachedEvents()
-              if (cachedEvents && cachedEvents.length > 0) {
-                const newlyFound = cachedEvents.filter(event => 
-                  missingEventIds.includes(event.id) && !foundEvents.some(e => e.id === event.id)
-                )
-                foundEvents = [...foundEvents, ...newlyFound]
-                missingEventIds = missingEventIds.filter(id => !newlyFound.some(e => e.id === id))
-              }
-              
-              attempts++
-            }
-          } catch (fetchError) {
-            console.error('Failed to fetch missing events:', fetchError)
-          }
-        }
-        
-        // Remove duplicates and sort by date (earliest first)
-        const uniqueFavorites = foundEvents
-          .filter((event, index, array) => array.findIndex(e => e.id === event.id) === index)
-          .sort((a, b) => a.rawDate.getTime() - b.rawDate.getTime())
-        
-        setFavoriteEvents(uniqueFavorites)
-      } catch (error) {
-        console.error('Error loading favorite events:', error)
-        setFavoriteEvents([])
-      } finally {
-        setLoading(false)
+      // Get ALL events from cache (not just the subset)
+      let cachedEvents = getCachedEvents()
+      let foundEvents: ProcessedEvent[] = []
+      
+      if (cachedEvents && cachedEvents.length > 0) {
+        // Search through ALL cached events
+        foundEvents = cachedEvents.filter(event => favorites.includes(event.id))
       }
+      
+      // Check recently favorited events for any we haven't found yet
+      const missingIds = favorites.filter(id => !foundEvents.some(event => event.id === id))
+      missingIds.forEach(id => {
+        const recentEvent = recentlyFavoritedEvents.get(id)
+        if (recentEvent && !foundEvents.some(e => e.id === id)) {
+          foundEvents.push(recentEvent)
+        }
+      })
+      
+      // Sort by date (earliest first) and display immediately
+      const sortedEvents = foundEvents
+        .filter((event, index, array) => array.findIndex(e => e.id === event.id) === index)
+        .sort((a, b) => a.rawDate.getTime() - b.rawDate.getTime())
+      
+      setFavoriteEvents(sortedEvents)
+      setLoading(false)
     }
 
     loadFavoriteEvents()

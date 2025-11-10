@@ -52,11 +52,22 @@ export async function createUserProfile(user: User): Promise<UserProfile> {
     }
 
     console.log('Setting user document with profile:', profile)
-    await setDoc(userRef, {
-      ...profile,
+    
+    // Create document data without undefined values
+    const docData: Record<string, any> = {
+      uid: profile.uid,
+      email: profile.email,
+      favoriteEvents: profile.favoriteEvents,
       createdAt: profile.createdAt,
       updatedAt: profile.updatedAt
-    }, { merge: true })
+    }
+    
+    // Only add displayName if it exists
+    if (profile.displayName) {
+      docData.displayName = profile.displayName
+    }
+    
+    await setDoc(userRef, docData, { merge: true })
     
     console.log('User profile created/updated successfully')
     return profile

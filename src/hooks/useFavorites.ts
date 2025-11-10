@@ -16,9 +16,16 @@ export function useFavorites() {
   const [pendingOperations, setPendingOperations] = useState<Set<number>>(new Set())
 
   // Helper to dispatch favorites changes across hook instances
-  const emitFavoritesChanged = (newFavorites: number[]) => {
+  const emitFavoritesChanged = (newFavorites: number[], action?: 'added' | 'removed', eventId?: number) => {
     try {
       window.dispatchEvent(new CustomEvent('favorites-changed', { detail: newFavorites }))
+      
+      // Also emit favorites-updated event for FavoritesSection
+      if (action && eventId !== undefined) {
+        window.dispatchEvent(new CustomEvent('favorites-updated', { 
+          detail: { action, eventId } 
+        }))
+      }
     } catch {
       // ignore in non-browser environments
     }
@@ -92,7 +99,7 @@ export function useFavorites() {
       setFavorites(prev => {
         if (prev.includes(eventId)) return prev
         const newFavorites = [...prev, eventId]
-        emitFavoritesChanged(newFavorites)
+        emitFavoritesChanged(newFavorites, 'added', eventId)
         return newFavorites
       })
       return true
@@ -115,7 +122,7 @@ export function useFavorites() {
       await removeEventFromFavorites(user.uid, eventId)
       setFavorites(prev => {
         const updated = prev.filter(id => id !== eventId)
-        emitFavoritesChanged(updated)
+        emitFavoritesChanged(updated, 'removed', eventId)
         return updated
       })
       return true
