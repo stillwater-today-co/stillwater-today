@@ -340,6 +340,36 @@
   backdrop-filter: blur(10px);
 }
 
+/* Make the password reset input match the auth form inputs */
+.password-reset-section input,
+.password-reset-input {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border: 2px solid rgba(71, 85, 105, 0.4);
+  border-radius: 12px;
+  font-size: 1rem;
+  background: rgba(17, 17, 17, 0.6);
+  color: #f8fafc;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  box-sizing: border-box;
+  margin-bottom: 0.75rem;
+}
+
+.password-reset-section input:focus,
+.password-reset-input:focus {
+  outline: none;
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+  background: rgba(10, 10, 10, 0.85);
+}
+
+.password-reset-section input:disabled,
+.password-reset-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .password-reset-text {
   color: #cbd5e1;
   font-size: 0.9rem;
@@ -840,7 +870,7 @@
   border-radius: 16px;
   padding: 2rem;
   margin-bottom: 2rem;
-  min-height: 50vh;
+  min-height: auto;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -852,9 +882,10 @@
 .summary-text {
   color: #ffffff;
   font-size: 1.12rem;
-  line-height: 1.7;
+  line-height: 1.8;
   max-width: 840px;
   margin: 0 auto;
+  padding: 1rem 0;
 }
 
 .summary-header {

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useFavorites } from '../hooks/useFavorites'
-import { getCachedEvents } from '../services/eventsService'
 import type { ProcessedEvent } from '../services/eventsService'
+import { getCachedEvents } from '../services/eventsService'
 
 interface FavoritesSectionProps {
   onClose?: () => void
@@ -124,7 +124,7 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({ onClose }) => {
         <div className="favorites-empty">
           <div className="empty-icon">🔐</div>
           <h4>Sign In Required</h4>
-          <p>Please sign in to view and save your favorite events.</p>
+          <p>Please sign in to view and favorite events.</p>
         </div>
       </div>
     )
@@ -163,7 +163,7 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({ onClose }) => {
         <div className="favorites-empty">
           <div className="empty-icon">⭐</div>
           <h4>No Favorites Yet</h4>
-          <p>Start saving events you're interested in by clicking the star button on any event.</p>
+          <p>Start favoriting events you're interested in by clicking the star button on any event.</p>
         </div>
       </div>
     )

@@ -1,12 +1,12 @@
-import { useState, useEffect, useCallback } from 'react'
-import { useAuth } from './useAuth'
-import { 
-  getUserFavoriteEvents, 
-  addEventToFavorites, 
-  removeEventFromFavorites,
+import { useCallback, useEffect, useState } from 'react'
+import {
+  addEventToFavorites,
+  cleanupDuplicateFavorites,
   createUserProfile,
-  cleanupDuplicateFavorites
+  getUserFavoriteEvents,
+  removeEventFromFavorites
 } from '../firebase/firestore'
+import { useAuth } from './useAuth'
 
 export function useFavorites() {
   const { user, loading } = useAuth()
@@ -15,12 +15,37 @@ export function useFavorites() {
   const [error, setError] = useState<string | null>(null)
   const [pendingOperations, setPendingOperations] = useState<Set<number>>(new Set())
 
+  // Helper to dispatch favorites changes across hook instances
+  const emitFavoritesChanged = (newFavorites: number[]) => {
+    try {
+      window.dispatchEvent(new CustomEvent('favorites-changed', { detail: newFavorites }))
+    } catch (e) {
+      // ignore in non-browser environments
+    }
+  }
+
+  // Listen for favorites changes from other instances
+  useEffect(() => {
+    const handler = (e: Event) => {
+      try {
+        const custom = e as CustomEvent<number[]>
+        if (custom && Array.isArray(custom.detail)) {
+          setFavorites(custom.detail)
+        }
+      } catch (err) {
+        console.error('Error handling favorites-changed event:', err)
+      }
+    }
+
+    window.addEventListener('favorites-changed', handler as EventListener)
+    return () => window.removeEventListener('favorites-changed', handler as EventListener)
+  }, [])
+
   // Load user favorites when user changes
   useEffect(() => {
     const loadFavorites = async () => {
       console.log('loadFavorites called, user:', user, 'loading:', loading)
       if (!user) {
-        console.log('No user, setting favorites to empty array')
         setFavorites([])
         return
       }
@@ -28,25 +53,15 @@ export function useFavorites() {
       try {
         setFavoritesLoading(true)
         setError(null)
-        
-        console.log('Creating user profile for user:', user.uid)
         // Ensure user profile exists
         await createUserProfile(user)
-        
-        console.log('Loading user favorites...')
-        
+
         // Clean up any duplicates in Firestore first
         await cleanupDuplicateFavorites(user.uid)
-        
+
         // Load favorites
         const userFavorites = await getUserFavoriteEvents(user.uid)
-        console.log('Loaded favorites:', userFavorites)
-        
-        // Remove any duplicates that might exist locally (double safety)
         const uniqueFavorites = Array.from(new Set(userFavorites))
-        if (uniqueFavorites.length !== userFavorites.length) {
-          console.log('Found duplicates in favorites, cleaned:', uniqueFavorites)
-        }
         setFavorites(uniqueFavorites)
       } catch (err) {
         console.error('Error loading favorites:', err)
@@ -64,32 +79,20 @@ export function useFavorites() {
 
   // Add event to favorites
   const addFavorite = useCallback(async (eventId: number) => {
-    console.log('addFavorite called for eventId:', eventId, 'user:', user)
     if (!user) {
-      console.log('No user, cannot add favorite')
       setError('You must be logged in to save favorites')
       return false
     }
 
-    // Check if already in favorites to prevent duplicates
-    if (favorites.includes(eventId)) {
-      console.log('Event already in favorites, skipping add')
-      return true
-    }
+    if (favorites.includes(eventId)) return true
 
     try {
       setError(null)
-      console.log('Calling addEventToFavorites in Firestore...')
       await addEventToFavorites(user.uid, eventId)
-      console.log('Successfully added to Firestore, updating local state')
       setFavorites(prev => {
-        // Double-check to prevent duplicates in local state
-        if (prev.includes(eventId)) {
-          console.log('Event already in local state, not adding duplicate')
-          return prev
-        }
+        if (prev.includes(eventId)) return prev
         const newFavorites = [...prev, eventId]
-        console.log('New favorites array:', newFavorites)
+        emitFavoritesChanged(newFavorites)
         return newFavorites
       })
       return true
@@ -110,7 +113,11 @@ export function useFavorites() {
     try {
       setError(null)
       await removeEventFromFavorites(user.uid, eventId)
-      setFavorites(prev => prev.filter(id => id !== eventId))
+      setFavorites(prev => {
+        const updated = prev.filter(id => id !== eventId)
+        emitFavoritesChanged(updated)
+        return updated
+      })
       return true
     } catch (err) {
       console.error('Error removing favorite:', err)
@@ -126,21 +133,17 @@ export function useFavorites() {
     console.log('User:', user)
     
     // Prevent duplicate operations
-    if (pendingOperations.has(eventId)) {
-      console.log('Operation already pending for event:', eventId)
-      return false
-    }
-    
-    setPendingOperations(prev => new Set(prev.add(eventId)))
-    
+    if (pendingOperations.has(eventId)) return false
+
+    setPendingOperations(prev => {
+      const s = new Set(prev)
+      s.add(eventId)
+      return s
+    })
+
     try {
-      if (favorites.includes(eventId)) {
-        console.log('Event is favorited, removing...')
-        return await removeFavorite(eventId)
-      } else {
-        console.log('Event not favorited, adding...')
-        return await addFavorite(eventId)
-      }
+      if (favorites.includes(eventId)) return await removeFavorite(eventId)
+      return await addFavorite(eventId)
     } finally {
       setPendingOperations(prev => {
         const newSet = new Set(prev)
@@ -151,9 +154,9 @@ export function useFavorites() {
   }, [favorites, addFavorite, removeFavorite, user, pendingOperations])
 
   // Check if event is favorited
-  const isFavorited = useCallback((eventId: number) => {
-    return favorites.includes(eventId)
-  }, [favorites])
+  const isFavorited = useCallback((eventId: number) => favorites.includes(eventId), [favorites])
+
+  const isPending = useCallback((eventId: number) => pendingOperations.has(eventId), [pendingOperations])
 
   // Test function to check Firestore connectivity
   const testFirestore = useCallback(async () => {
@@ -189,6 +192,7 @@ export function useFavorites() {
     removeFavorite,
     toggleFavorite,
     isFavorited,
+    isPending,
     testFirestore
   }
 }
