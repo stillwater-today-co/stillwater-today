@@ -7,7 +7,6 @@ import {
   filterEventsByCategory,
   filterEventsByDate,
   getEventCategories,
-  getRemainingEventsCount,
   hasMoreEventsAvailable,
   loadMoreEvents
 } from '../services/eventsService'
@@ -386,15 +385,7 @@ const EventsSection: React.FC = () => {
         />
       )}
 
-      {/* More events info */}
-      {hasMoreEventsAvailable() && (
-        <div className="more-events-info">
-          <p className="remaining-count">
-            {getRemainingEventsCount() > 0 && `${getRemainingEventsCount()}+ more events available - `}
-            Use pagination to load more events from OSU
-          </p>
-        </div>
-      )}
+      {/* Removed footer that displayed a remaining events count */}
     </section>
   )
 }
