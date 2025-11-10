@@ -336,9 +336,9 @@ const EventsSection: React.FC = () => {
                     aria-pressed={isFavorited(event.id)}
                     disabled={isPending && isPending(event.id)}
                   >
-                    <span className="save-icon">
-                      {isFavorited(event.id) ? <Star size={14} /> : <StarOff size={14} />}
-                    </span>
+                      <span className="save-icon">
+                        <Star size={14} className="favorite-icon" />
+                      </span>
                     {isPending && isPending(event.id) ? 'Favoriting...' : (isFavorited(event.id) ? 'Favorited' : 'Favorite')}
                   </button>
                 ) : (

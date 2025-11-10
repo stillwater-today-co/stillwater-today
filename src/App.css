@@ -1665,6 +1665,21 @@
   font-size: 1rem;
 }
 
+/* Lucide star icon: outline by default, filled when the button has .favorited */
+.save-btn .favorite-icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+}
+.save-btn.favorited .favorite-icon {
+  fill: #f5880b; /* orange */
+  stroke: none;
+  color: #f5880b;
+}
+.save-btn.disabled .favorite-icon {
+  opacity: 0.65;
+}
+
 .no-events {
   text-align: center;
   color: #94a3b8;
