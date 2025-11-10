@@ -92,7 +92,7 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({ onClose }) => {
     return () => {
       window.removeEventListener('favorites-updated', handleFavoritesUpdated as EventListener)
     }
-  }, [favorites])
+  }, [favorites, recentlyFavoritedEvents])
 
   const handleRemoveFavorite = async (eventId: number) => {
     // Optimistically update local state for immediate feedback

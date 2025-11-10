@@ -1,14 +1,14 @@
-import { 
-  getFirestore, 
-  doc, 
-  getDoc, 
-  setDoc, 
-  updateDoc, 
-  arrayUnion, 
-  arrayRemove
+import type { User } from 'firebase/auth'
+import {
+  arrayRemove,
+  arrayUnion,
+  doc,
+  getDoc,
+  getFirestore,
+  setDoc,
+  updateDoc
 } from 'firebase/firestore'
 import { app } from './config'
-import type { User } from 'firebase/auth'
 
 // Firebase error interface
 interface FirebaseError extends Error {
@@ -54,7 +54,7 @@ export async function createUserProfile(user: User): Promise<UserProfile> {
     console.log('Setting user document with profile:', profile)
     
     // Create document data without undefined values
-    const docData: Record<string, any> = {
+    const docData: Record<string, unknown> = {
       uid: profile.uid,
       email: profile.email,
       favoriteEvents: profile.favoriteEvents,
