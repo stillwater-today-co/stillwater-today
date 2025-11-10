@@ -65,7 +65,7 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({ onClose }) => {
               // Load more events
               try {
                 await loadMoreEvents(currentCached)
-              } catch (loadError) {
+              } catch {
                 // If no more events available, break
                 break
               }
