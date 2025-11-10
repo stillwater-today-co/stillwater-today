@@ -19,7 +19,7 @@ export function useFavorites() {
   const emitFavoritesChanged = (newFavorites: number[]) => {
     try {
       window.dispatchEvent(new CustomEvent('favorites-changed', { detail: newFavorites }))
-    } catch (e) {
+    } catch {
       // ignore in non-browser environments
     }
   }
