@@ -12,13 +12,13 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({ onClose }) => {
   const [favoriteEvents, setFavoriteEvents] = useState<ProcessedEvent[]>([])
   const [loading, setLoading] = useState(false)
 
+  // Store event data that was just favorited for immediate display
+  const [recentlyFavoritedEvents, setRecentlyFavoritedEvents] = useState<Map<number, ProcessedEvent>>(new Map())
+
   // Load favorite event details with real-time updates
   useEffect(() => {
     const loadFavoriteEvents = async () => {
-      console.log('Loading favorite events, favorites array:', favorites)
-      
       if (favorites.length === 0) {
-        console.log('No favorites, clearing favorite events')
         setFavoriteEvents([])
         return
       }
@@ -26,38 +26,64 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({ onClose }) => {
       try {
         setLoading(true)
         
-        // First, try to get events from cache
-        const cachedEvents = getCachedEvents()
+        // Get ALL events from cache (not just the subset)
+        let cachedEvents = getCachedEvents()
         let foundEvents: ProcessedEvent[] = []
         let missingEventIds: number[] = []
         
-        if (cachedEvents) {
+        if (cachedEvents && cachedEvents.length > 0) {
+          // Search through ALL cached events
           foundEvents = cachedEvents.filter(event => favorites.includes(event.id))
           missingEventIds = favorites.filter(id => !foundEvents.some(event => event.id === id))
-          
-          console.log('Found in cache:', foundEvents.length, 'Missing from cache:', missingEventIds.length)
         } else {
-          console.log('No cached events available, will need to fetch all')
           missingEventIds = [...favorites]
         }
         
-        // If we have missing events, try to fetch them from API
+        // Check recently favorited events for missing ones
+        missingEventIds.forEach(id => {
+          const recentEvent = recentlyFavoritedEvents.get(id)
+          if (recentEvent && !foundEvents.some(e => e.id === id)) {
+            foundEvents.push(recentEvent)
+          }
+        })
+        
+        // Update missing list after checking recent events
+        missingEventIds = favorites.filter(id => !foundEvents.some(event => event.id === id))
+        
+        // If we have missing events, try to load more pages to find them
         if (missingEventIds.length > 0) {
-          console.log('Fetching missing events from API:', missingEventIds)
-          
-          // Import fetchOSUEvents dynamically to avoid circular imports
-          const { fetchOSUEvents } = await import('../services/eventsService')
-          
+          const { loadMoreEvents, getCachedEvents } = await import('../services/eventsService')
           try {
-            // Fetch fresh events to find the missing ones
-            const allEvents = await fetchOSUEvents(false) // Don't force refresh, use existing cache
-            const missingEvents = allEvents.filter(event => missingEventIds.includes(event.id))
+            // Try loading more events to find the missing ones
+            // Load multiple pages if needed
+            let attempts = 0
+            const maxAttempts = 3
             
-            console.log('Found missing events:', missingEvents.length)
-            foundEvents = [...foundEvents, ...missingEvents]
+            while (missingEventIds.length > 0 && attempts < maxAttempts) {
+              const currentCached = getCachedEvents() || []
+              
+              // Load more events
+              try {
+                await loadMoreEvents(currentCached)
+              } catch (loadError) {
+                // If no more events available, break
+                break
+              }
+              
+              // Check cache again after loading more
+              cachedEvents = getCachedEvents()
+              if (cachedEvents && cachedEvents.length > 0) {
+                const newlyFound = cachedEvents.filter(event => 
+                  missingEventIds.includes(event.id) && !foundEvents.some(e => e.id === event.id)
+                )
+                foundEvents = [...foundEvents, ...newlyFound]
+                missingEventIds = missingEventIds.filter(id => !newlyFound.some(e => e.id === id))
+              }
+              
+              attempts++
+            }
           } catch (fetchError) {
             console.error('Failed to fetch missing events:', fetchError)
-            // Continue with just the cached events
           }
         }
         
@@ -66,15 +92,7 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({ onClose }) => {
           .filter((event, index, array) => array.findIndex(e => e.id === event.id) === index)
           .sort((a, b) => a.rawDate.getTime() - b.rawDate.getTime())
         
-        console.log('Final favorite events:', uniqueFavorites.length, 'out of', favorites.length, 'favorites')
         setFavoriteEvents(uniqueFavorites)
-        
-        // Log any still missing events
-        if (uniqueFavorites.length < favorites.length) {
-          const stillMissing = favorites.filter(id => !uniqueFavorites.some(event => event.id === id))
-          console.log('Still missing events (may be old/deleted):', stillMissing)
-        }
-        
       } catch (error) {
         console.error('Error loading favorite events:', error)
         setFavoriteEvents([])
@@ -84,27 +102,61 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({ onClose }) => {
     }
 
     loadFavoriteEvents()
+    
+    // Listen for favorites-updated event to reload when an event is favorited
+    const handleFavoritesUpdated = (e: Event) => {
+      const customEvent = e as CustomEvent<{ eventId: number; eventData: ProcessedEvent; action: 'added' | 'removed' }>
+      if (customEvent.detail) {
+        const { eventId, eventData, action } = customEvent.detail
+        if (action === 'added' && eventData) {
+          // Store the event data for immediate display
+          setRecentlyFavoritedEvents(prev => {
+            const newMap = new Map(prev)
+            newMap.set(eventId, eventData)
+            return newMap
+          })
+          // Immediately add to favorites display
+          setFavoriteEvents(prev => {
+            if (prev.some(e => e.id === eventId)) return prev
+            const updated = [...prev, eventData].sort((a, b) => a.rawDate.getTime() - b.rawDate.getTime())
+            return updated
+          })
+        } else if (action === 'removed') {
+          // Remove from recently favorited
+          setRecentlyFavoritedEvents(prev => {
+            const newMap = new Map(prev)
+            newMap.delete(eventId)
+            return newMap
+          })
+          // Immediately remove from favorites display
+          setFavoriteEvents(prev => prev.filter(e => e.id !== eventId))
+        }
+      } else {
+        // If no detail, just reload
+        loadFavoriteEvents()
+      }
+    }
+    
+    window.addEventListener('favorites-updated', handleFavoritesUpdated as EventListener)
+    return () => {
+      window.removeEventListener('favorites-updated', handleFavoritesUpdated as EventListener)
+    }
   }, [favorites])
 
   const handleRemoveFavorite = async (eventId: number) => {
-    console.log('Removing favorite event:', eventId)
-    
     // Optimistically update local state for immediate feedback
     setFavoriteEvents(prev => prev.filter(event => event.id !== eventId))
     
     // Update the favorites in the background
     const result = await toggleFavorite(eventId)
-    console.log('Toggle favorite result:', result)
     
-    // If the operation failed, we could revert the optimistic update here
+    // If the operation failed, reload to get the correct state
     if (!result) {
-      console.log('Failed to remove favorite, reverting optimistic update')
-      // Reload to get the correct state
       const cachedEvents = getCachedEvents()
       if (cachedEvents) {
-        const userFavorites = cachedEvents.filter(event => 
-          favorites.includes(event.id)
-        )
+        const userFavorites = cachedEvents
+          .filter(event => favorites.includes(event.id))
+          .sort((a, b) => a.rawDate.getTime() - b.rawDate.getTime())
         setFavoriteEvents(userFavorites)
       }
     }

@@ -11,7 +11,6 @@ A modern community information platform for Stillwater, Oklahoma, built with Rea
   - Current conditions with detailed metrics
   - 5-day forecast with hourly updates
   - Humidity, wind, visibility, and more
-- **Events & Activities** - Curated local events with filtering options
 - **User Profiles** - Personalized settings and preferences
 - **Feedback System** - Community input and suggestions
 - **Modern Dark Theme** - Black/gray color scheme with orange accents
@@ -24,7 +23,6 @@ A modern community information platform for Stillwater, Oklahoma, built with Rea
 Stillwater Today serves as a community hub that:
 1. **Daily Briefings**: AI-generated summaries of important local information
 2. **Weather Updates**: Real-time weather data from the National Weather Service
-3. **Event Discovery**: Find and explore local events and activities
 4. **Community Engagement**: User feedback and profile management
 5. **Secure Access**: Email/password authentication with account management
 6. **Personalization**: Customizable preferences and display settings
@@ -36,7 +34,6 @@ Stillwater Today serves as a community hub that:
 │   ├── components/          # Reusable UI components
 │   │   ├── AISummary.tsx    # Daily AI-generated summary display
 │   │   ├── Weather.tsx      # Weather widget with NWS integration
-│   │   ├── EventsSection.tsx # Local events and activities
 │   │   ├── Layout.tsx       # Main page layout with sidebar
 │   │   ├── Sidebar.tsx      # Settings and preferences panel
 │   │   ├── Banner.tsx       # Site banner/header
