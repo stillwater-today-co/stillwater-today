@@ -13,7 +13,7 @@ import {
 import FavoritesSection from './FavoritesSection'
 import Pagination from './Pagination'
 
-const EVENTS_PER_PAGE = 12
+const EVENTS_PER_PAGE = 6
 
 const EventsSection: React.FC = () => {
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'upcoming'>('all')
