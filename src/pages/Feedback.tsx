@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { submitFeedback } from '../firebase/feedbacks';
+import { useAuth } from '../hooks/useAuth';
 
 
 const Feedback: React.FC = () => {
+  const { user } = useAuth();
   const [message, setMessage] = useState('');
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>("idle");
 
   const handleSubmitFeedback = async () => {
-    if (!message.trim()) return;
+    if (!message.trim() || !user) return;
     setSubmitStatus('submitting');
-    const result = await submitFeedback(message);
+    const result = await submitFeedback(message, user.uid);
     if (result.success) {
       setSubmitStatus('success');
       setMessage('');
