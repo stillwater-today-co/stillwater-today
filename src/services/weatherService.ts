@@ -65,26 +65,27 @@ const STILLWATER_LON = -97.0584
 let weatherCache: { data: WeatherData; timestamp: number } | null = null
 const CACHE_DURATION = 60 * 60 * 1000 // 1 hour in milliseconds
 
-// Convert NWS weather icons to emoji
-function getWeatherEmoji(_iconUrl: string, shortForecast: string): string {
+// Convert NWS shortForecast text into a semantic weather icon token
+// The token is later mapped to a lucide icon in the UI layer.
+function getWeatherIconToken(_iconUrl: string, shortForecast: string): string {
   const forecast = shortForecast.toLowerCase()
-  
+
   if (forecast.includes('sunny') || forecast.includes('clear')) {
-    return '☀️'
+    return 'sun'
   } else if (forecast.includes('partly cloudy') || forecast.includes('partly sunny')) {
-    return '⛅'
+    return 'partly'
   } else if (forecast.includes('cloudy') || forecast.includes('overcast')) {
-    return '☁️'
-  } else if (forecast.includes('rain') || forecast.includes('shower')) {
-    return '🌧️'
+    return 'cloud'
+  } else if (forecast.includes('rain') || forecast.includes('shower') || forecast.includes('drizzle')) {
+    return 'rain'
   } else if (forecast.includes('thunderstorm') || forecast.includes('storm')) {
-    return '⛈️'
+    return 'thunder'
   } else if (forecast.includes('snow')) {
-    return '🌨️'
+    return 'snow'
   } else if (forecast.includes('fog') || forecast.includes('mist')) {
-    return '🌫️'
+    return 'fog'
   } else {
-    return '🌤️' // default
+    return 'default'
   }
 }
 
@@ -297,7 +298,7 @@ export async function fetchWeatherData(forceRefresh: boolean = false): Promise<W
       if (day) {
           processedForecast.push({
             date: i === 0 ? 'Today' : i === 2 ? 'Tomorrow' : new Date(day.startTime).toLocaleDateString('en-US', { weekday: 'short' }),
-            icon: getWeatherEmoji(day.icon, day.shortForecast),
+            icon: getWeatherIconToken(day.icon, day.shortForecast),
             high: `${day.temperature}°`,
             highValue: day.temperature,
             low: night ? `${night.temperature}°` : `${day.temperature - 10}°`,
@@ -323,7 +324,7 @@ export async function fetchWeatherData(forceRefresh: boolean = false): Promise<W
         temperature: `${tempF}°F`,
         temperatureValue: tempF,
         condition: currentWeather.textDescription,
-        icon: getWeatherEmoji(currentWeather.icon, currentWeather.textDescription),
+  icon: getWeatherIconToken(currentWeather.icon, currentWeather.textDescription),
         feelsLike: `${feelsLike}°F`,
         feelsLikeValue: feelsLike,
         humidity: humidityDisplay,

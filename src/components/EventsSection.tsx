@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { AlertTriangle, Calendar, DollarSign, File, MapPin, RefreshCw, Star, StarOff } from 'lucide-react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useFavorites } from '../hooks/useFavorites'
 import type { ProcessedEvent } from '../services/eventsService'
 import {
@@ -130,8 +131,11 @@ const EventsSection: React.FC = () => {
         <div className="events-header">
           <div className="events-title-area">
             <h2>Events & Activities</h2>
-            <button className="refresh-btn loading" disabled>
-              <span className="refresh-icon">↻</span>
+            <button 
+              className="refresh-btn loading"
+              disabled={true}
+            >
+              <span className="refresh-icon"><RefreshCw size={16} /></span>
             </button>
           </div>
         </div>
@@ -150,13 +154,16 @@ const EventsSection: React.FC = () => {
         <div className="events-header">
           <div className="events-title-area">
             <h2>Events & Activities</h2>
-            <button className="refresh-btn" onClick={handleRefresh}>
-              <span className="refresh-icon">↻</span>
+            <button 
+              className="refresh-btn"
+              onClick={handleRefresh}
+            >
+              <span className="refresh-icon"><RefreshCw size={16} /></span>
             </button>
           </div>
         </div>
         <div className="events-error">
-          <div className="error-icon">⚠️</div>
+          <div className="error-icon"><AlertTriangle size={18} /></div>
           <h3>Unable to Load Events</h3>
           <p>{error}</p>
           <button className="refresh-btn" onClick={handleRefresh}>
@@ -174,14 +181,16 @@ const EventsSection: React.FC = () => {
           <h2>Events & Activities</h2>
           <div className="header-buttons">
             {isAuthenticated && (
-              <button
-                className="favorites-btn"
-                onClick={() => setShowFavorites(!showFavorites)}
-                title="View your favorite events"
-              >
-                <span className="favorites-icon">⭐</span>
-                <span>Favorites</span>
-              </button>
+              <>
+                <button 
+                  className="favorites-btn"
+                  onClick={() => setShowFavorites(!showFavorites)}
+                  title="View your favorite events"
+                >
+                  <span className="favorites-icon"><Star size={16} /></span>
+                  <span>Favorites</span>
+                </button>
+              </>
             )}
             <button
               className={`refresh-btn ${isRefreshing ? 'loading' : ''}`}
@@ -189,7 +198,7 @@ const EventsSection: React.FC = () => {
               disabled={isRefreshing || loading}
               title="Refresh events"
             >
-              <span className="refresh-icon">↻</span>
+              <span className="refresh-icon"><RefreshCw size={16} className={isRefreshing ? 'spinning' : ''} /></span>
             </button>
           </div>
         </div>
@@ -256,7 +265,7 @@ const EventsSection: React.FC = () => {
         
         {error && events.length > 0 && (
           <div className="events-error-banner">
-            <span>⚠️ Some events may be cached: {error}</span>
+            <span><AlertTriangle size={14} /> Some events may be cached: {error}</span>
           </div>
         )}
         
@@ -282,16 +291,16 @@ const EventsSection: React.FC = () => {
               </div>
               <div className="event-details">
                 <div className="event-detail">
-                  <span className="detail-icon">📅</span>
+                  <Calendar size={14} className="detail-icon" />
                   <span>{event.date} at {event.time}</span>
                 </div>
                 <div className="event-detail">
-                  <span className="detail-icon">📍</span>
+                  <MapPin size={14} className="detail-icon" />
                   <span>{event.location}</span>
                 </div>
                 {event.cost && (
                   <div className="event-detail">
-                    <span className="detail-icon">💰</span>
+                    <DollarSign size={14} className="detail-icon" />
                     <span>{event.cost}</span>
                   </div>
                 )}
@@ -329,7 +338,7 @@ const EventsSection: React.FC = () => {
                     disabled={isPending && isPending(event.id)}
                   >
                     <span className="save-icon">
-                      {isFavorited(event.id) ? '⭐' : '☆'}
+                      {isFavorited(event.id) ? <Star size={14} /> : <StarOff size={14} />}
                     </span>
                     {isPending && isPending(event.id) ? 'Favoriting...' : (isFavorited(event.id) ? 'Favorited' : 'Favorite')}
                   </button>
@@ -339,16 +348,22 @@ const EventsSection: React.FC = () => {
                     disabled
                     title="Sign in to favorite events"
                   >
-                    <span className="save-icon">☆</span>
+                    <span className="save-icon"><StarOff size={14} /></span>
                     Favorite
                   </button>
                 )}
               </div>
             </div>
           ))
+        ) : allFilteredEvents.length > 0 ? (
+          <div className="no-events">
+            <div className="no-events-icon"><File size={20} /></div>
+            <h3>No events on this page</h3>
+            <p>Try going to a different page or adjusting your filters.</p>
+          </div>
         ) : (
           <div className="no-events">
-            <div className="no-events-icon">📅</div>
+            <div className="no-events-icon"><File size={20} /></div>
             <h3>No events found</h3>
             <p>
               {dateFilter === 'today'
