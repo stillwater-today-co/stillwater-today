@@ -1,3 +1,4 @@
+import { Calendar, DollarSign, Lock, MapPin, Star, X } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { useFavorites } from '../hooks/useFavorites'
 import type { ProcessedEvent } from '../services/eventsService'
@@ -119,12 +120,12 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({ onClose }) => {
           <h3>Favorite Events</h3>
           {onClose && (
             <button className="close-btn" onClick={onClose}>
-              ✕
+              <X size={16} />
             </button>
           )}
         </div>
         <div className="favorites-empty">
-          <div className="empty-icon">🔐</div>
+          <div className="empty-icon"><Lock size={20} /></div>
           <h4>Sign In Required</h4>
           <p>Please sign in to view and favorite events.</p>
         </div>
@@ -139,7 +140,7 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({ onClose }) => {
           <h3>Favorite Events</h3>
           {onClose && (
             <button className="close-btn" onClick={onClose}>
-              ✕
+              <X size={16} />
             </button>
           )}
         </div>
@@ -163,7 +164,7 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({ onClose }) => {
           )}
         </div>
         <div className="favorites-empty">
-          <div className="empty-icon">⭐</div>
+          <div className="empty-icon"><Star size={20} /></div>
           <h4>No Favorites Yet</h4>
           <p>Start favoriting events you're interested in by clicking the star button on any event.</p>
         </div>
@@ -192,7 +193,7 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({ onClose }) => {
                 onClick={() => handleRemoveFavorite(event.id)}
                 title="Remove from favorites"
               >
-                ⭐
+                <Star size={16} />
               </button>
             </div>
             
@@ -213,16 +214,16 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({ onClose }) => {
             
             <div className="event-details">
               <div className="event-detail">
-                <span className="detail-icon">📅</span>
+                <Calendar size={14} className="detail-icon" />
                 <span>{event.date} at {event.time}</span>
               </div>
               <div className="event-detail">
-                <span className="detail-icon">📍</span>
+                <MapPin size={14} className="detail-icon" />
                 <span>{event.location}</span>
               </div>
               {event.cost && (
                 <div className="event-detail">
-                  <span className="detail-icon">💰</span>
+                  <DollarSign size={14} className="detail-icon" />
                   <span>{event.cost}</span>
                 </div>
               )}
