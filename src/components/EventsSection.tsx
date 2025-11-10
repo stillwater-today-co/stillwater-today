@@ -2,13 +2,12 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { useFavorites } from '../hooks/useFavorites'
 import type { ProcessedEvent } from '../services/eventsService'
 import {
-    fetchOSUEvents,
-    filterAndSortEvents,
-    getEventCategories,
-    getRemainingEventsCount,
-    hasMoreEventsAvailable,
-    loadMoreCategoryEvents,
-    loadMoreEvents
+  fetchOSUEvents,
+  filterAndSortEvents,
+  getEventCategories,
+  hasMoreEventsAvailable,
+  loadMoreCategoryEvents,
+  loadMoreEvents
 } from '../services/eventsService'
 import FavoritesSection from './FavoritesSection'
 import Pagination from './Pagination'
@@ -137,8 +136,7 @@ const EventsSection: React.FC = () => {
   const endIndex = startIndex + eventsPerPage
   const filteredEvents = allFilteredEvents.slice(startIndex, endIndex)
   
-  const hasMoreAvailable = hasMoreEventsAvailable()
-  const remainingCount = getRemainingEventsCount()
+  // Removed remaining-count UI; helpers no longer needed here
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -460,15 +458,7 @@ const EventsSection: React.FC = () => {
         />
       )}
 
-      {/* Additional events info */}
-      {hasMoreAvailable && (
-        <div className="more-events-info">
-          <p className="remaining-count">
-            {remainingCount > 0 && `${remainingCount}+ more events available - `}
-            Use pagination to load more events from OSU
-          </p>
-        </div>
-      )}
+      {/* Removed the "more events" footer message per request */}
     </section>
   )
 }
