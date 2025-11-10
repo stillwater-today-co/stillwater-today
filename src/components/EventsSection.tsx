@@ -1,5 +1,5 @@
 import { AlertTriangle, Calendar, DollarSign, File, MapPin, RefreshCw, Star, StarOff } from 'lucide-react'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useFavorites } from '../hooks/useFavorites'
 import type { ProcessedEvent } from '../services/eventsService'
 import {
@@ -355,7 +355,7 @@ const EventsSection: React.FC = () => {
               </div>
             </div>
           ))
-        ) : allFilteredEvents.length > 0 ? (
+        ) : filteredEvents.length > 0 ? (
           <div className="no-events">
             <div className="no-events-icon"><File size={20} /></div>
             <h3>No events on this page</h3>
