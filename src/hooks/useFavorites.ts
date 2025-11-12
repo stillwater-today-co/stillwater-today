@@ -91,17 +91,22 @@ export function useFavorites() {
       return false
     }
 
-    if (favorites.includes(eventId)) return true
+    if (favorites.includes(eventId)) {
+      console.log('Event already favorited:', eventId)
+      return true
+    }
 
     try {
       setError(null)
+      console.log('Adding to Firestore:', eventId)
       await addEventToFavorites(user.uid, eventId)
-      setFavorites(prev => {
-        if (prev.includes(eventId)) return prev
-        const newFavorites = [...prev, eventId]
-        emitFavoritesChanged(newFavorites, 'added', eventId)
-        return newFavorites
-      })
+      
+      // Reload favorites from Firestore to ensure consistency
+      const updatedFavorites = await getUserFavoriteEvents(user.uid)
+      console.log('Reloaded favorites from Firestore:', updatedFavorites)
+      
+      setFavorites(updatedFavorites)
+      emitFavoritesChanged(updatedFavorites, 'added', eventId)
       return true
     } catch (err) {
       console.error('Error adding favorite:', err)
@@ -119,12 +124,15 @@ export function useFavorites() {
 
     try {
       setError(null)
+      console.log('Removing from Firestore:', eventId)
       await removeEventFromFavorites(user.uid, eventId)
-      setFavorites(prev => {
-        const updated = prev.filter(id => id !== eventId)
-        emitFavoritesChanged(updated, 'removed', eventId)
-        return updated
-      })
+      
+      // Reload favorites from Firestore to ensure consistency
+      const updatedFavorites = await getUserFavoriteEvents(user.uid)
+      console.log('Reloaded favorites from Firestore:', updatedFavorites)
+      
+      setFavorites(updatedFavorites)
+      emitFavoritesChanged(updatedFavorites, 'removed', eventId)
       return true
     } catch (err) {
       console.error('Error removing favorite:', err)

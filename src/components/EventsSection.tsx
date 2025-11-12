@@ -1,4 +1,4 @@
-import { AlertTriangle, Calendar, DollarSign, File, MapPin, RefreshCw, Star, StarOff } from 'lucide-react'
+import { AlertTriangle, Calendar, DollarSign, File, MapPin, Star, StarOff } from 'lucide-react'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useFavorites } from '../hooks/useFavorites'
 import type { ProcessedEvent } from '../services/eventsService'
@@ -24,7 +24,6 @@ const EventsSection: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [availableCategories, setAvailableCategories] = useState<string[]>([])
   const [showFavorites, setShowFavorites] = useState(false)
-  const [isRefreshing, setIsRefreshing] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   
   const { toggleFavorite, isFavorited, isPending, isAuthenticated } = useFavorites()
@@ -71,24 +70,6 @@ const EventsSection: React.FC = () => {
     setCurrentPage(1)
   }, [dateFilter, categoryFilter])
 
-  // Handle refresh
-  const handleRefresh = useCallback(async () => {
-    if (isRefreshing || loading) return
-    setIsRefreshing(true)
-    try {
-      setError(null)
-      const osuEvents = await fetchOSUEvents(true)
-      setEvents(osuEvents)
-      const categories = getEventCategories(osuEvents)
-      setAvailableCategories(categories)
-    } catch (err) {
-      console.error('Failed to refresh events:', err)
-      setError(err instanceof Error ? err.message : 'Failed to refresh events')
-    } finally {
-      setTimeout(() => setIsRefreshing(false), 500)
-    }
-  }, [isRefreshing, loading])
-
   // Handle page change - load more if needed
   const handlePageChange = useCallback(async (page: number) => {
     const hasMore = hasMoreEventsAvailable()
@@ -130,12 +111,6 @@ const EventsSection: React.FC = () => {
         <div className="events-header">
           <div className="events-title-area">
             <h2>Events & Activities</h2>
-            <button 
-              className="refresh-btn loading"
-              disabled={true}
-            >
-              <span className="refresh-icon"><RefreshCw size={16} /></span>
-            </button>
           </div>
         </div>
         <div className="loading-placeholder">
@@ -153,21 +128,12 @@ const EventsSection: React.FC = () => {
         <div className="events-header">
           <div className="events-title-area">
             <h2>Events & Activities</h2>
-            <button 
-              className="refresh-btn"
-              onClick={handleRefresh}
-            >
-              <span className="refresh-icon"><RefreshCw size={16} /></span>
-            </button>
           </div>
         </div>
         <div className="events-error">
           <div className="error-icon"><AlertTriangle size={18} /></div>
           <h3>Unable to Load Events</h3>
           <p>{error}</p>
-          <button className="refresh-btn" onClick={handleRefresh}>
-            Try Again
-          </button>
         </div>
       </section>
     )
@@ -191,14 +157,6 @@ const EventsSection: React.FC = () => {
                 </button>
               </>
             )}
-            <button
-              className={`refresh-btn ${isRefreshing ? 'loading' : ''}`}
-              onClick={handleRefresh}
-              disabled={isRefreshing || loading}
-              title="Refresh events"
-            >
-              <span className="refresh-icon"><RefreshCw size={16} className={isRefreshing ? 'spinning' : ''} /></span>
-            </button>
           </div>
         </div>
         <div className="events-filters">
@@ -252,16 +210,7 @@ const EventsSection: React.FC = () => {
         <FavoritesSection onClose={() => setShowFavorites(false)} />
       )}
 
-      <div className={`events-grid ${isRefreshing ? 'refreshing' : ''}`}>
-        {isRefreshing && (
-          <div className="events-refreshing-overlay">
-            <div className="refreshing-indicator">
-              <span className="loading-spinner-small"></span>
-              <span>Refreshing events...</span>
-            </div>
-          </div>
-        )}
-        
+      <div className="events-grid">
         {error && events.length > 0 && (
           <div className="events-error-banner">
             <span><AlertTriangle size={14} /> Some events may be cached: {error}</span>
