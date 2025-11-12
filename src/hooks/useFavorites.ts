@@ -6,6 +6,7 @@ import {
   getUserFavoriteEvents,
   removeEventFromFavorites
 } from '../firebase/firestore'
+import { getCachedEvents } from '../services/eventsService'
 import { useAuth } from './useAuth'
 
 export function useFavorites() {
@@ -48,6 +49,49 @@ export function useFavorites() {
     return () => window.removeEventListener('favorites-changed', handler as EventListener)
   }, [])
 
+  // Clean up expired events (events that happened yesterday or earlier)
+  const cleanupExpiredEvents = useCallback(async (favoriteIds: number[]) => {
+    if (!user || favoriteIds.length === 0) return favoriteIds
+
+    try {
+      const cachedEvents = getCachedEvents()
+      if (!cachedEvents || cachedEvents.length === 0) return favoriteIds
+
+      // Get today at midnight to compare dates
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+
+      // Find expired event IDs (events that happened before today)
+      const expiredIds: number[] = []
+      favoriteIds.forEach(id => {
+        const event = cachedEvents.find(e => e.id === id)
+        if (event) {
+          const eventDate = new Date(event.rawDate)
+          eventDate.setHours(0, 0, 0, 0)
+          // If event date is before today, it's expired
+          if (eventDate < today) {
+            expiredIds.push(id)
+          }
+        }
+      })
+
+      // Remove expired events from Firestore
+      if (expiredIds.length > 0) {
+        console.log('Removing expired events from favorites:', expiredIds)
+        for (const expiredId of expiredIds) {
+          await removeEventFromFavorites(user.uid, expiredId)
+        }
+        // Return the cleaned list
+        return favoriteIds.filter(id => !expiredIds.includes(id))
+      }
+
+      return favoriteIds
+    } catch (err) {
+      console.error('Error cleaning up expired events:', err)
+      return favoriteIds // Return original list on error
+    }
+  }, [user])
+
   // Load user favorites when user changes
   useEffect(() => {
     const loadFavorites = async () => {
@@ -67,7 +111,11 @@ export function useFavorites() {
         await cleanupDuplicateFavorites(user.uid)
 
         // Load favorites
-        const userFavorites = await getUserFavoriteEvents(user.uid)
+        let userFavorites = await getUserFavoriteEvents(user.uid)
+        
+        // Clean up expired events (events that happened yesterday or earlier)
+        userFavorites = await cleanupExpiredEvents(userFavorites)
+        
         const uniqueFavorites = Array.from(new Set(userFavorites))
         setFavorites(uniqueFavorites)
       } catch (err) {
@@ -82,7 +130,7 @@ export function useFavorites() {
       console.log('Auth not loading, calling loadFavorites')
       loadFavorites()
     }
-  }, [user, loading])
+  }, [user, loading, cleanupExpiredEvents])
 
   // Add event to favorites
   const addFavorite = useCallback(async (eventId: number) => {
