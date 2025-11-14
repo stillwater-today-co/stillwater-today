@@ -1,7 +1,7 @@
 import { Bot } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
-import { generateTodayEventsSummary } from '../briefing/briefingService';
-import { fetchRandomQuote } from '../services/quotesService';
+import { generateTodayEventsSummary } from '../../services/briefingService';
+import { fetchRandomQuote } from '../../services/quotesService';
 
 const AISummary: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)

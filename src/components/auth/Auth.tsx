@@ -1,7 +1,7 @@
 import { CheckCircle, XCircle } from 'lucide-react';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createUser, resetPassword, signInUser } from '../firebase/authService';
+import { createUser, resetPassword, signInUser } from '../../lib/firebase/authService';
 
 const Auth: React.FC = () => {
   const [email, setEmail] = useState('')

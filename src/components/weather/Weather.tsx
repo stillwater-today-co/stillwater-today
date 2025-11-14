@@ -1,6 +1,6 @@
 import { AlertTriangle, CheckCircle, Cloud, CloudRain, CloudSnow, RefreshCw, Sun, Zap } from 'lucide-react'
 import React, { useCallback, useEffect, useState } from 'react'
-import { fetchWeatherData, getCachedWeather, hasCachedWeather } from '../services/weatherService'
+import { fetchWeatherData, getCachedWeather, hasCachedWeather } from '../../services/weatherService'
 
 interface WeatherData {
   current: {

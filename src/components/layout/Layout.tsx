@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
-import AISummary from './AISummary'
+import AISummary from '../ai/AISummary'
 import Banner from './Banner'
-import EventsSection from './EventsSection'
+import EventsSection from '../events/EventsSection'
 import Sidebar from './Sidebar'
-import Weather from './Weather'
+import Weather from '../weather/Weather'
 
 const Layout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)

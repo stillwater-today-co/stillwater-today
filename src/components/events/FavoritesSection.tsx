@@ -1,8 +1,8 @@
 import { Calendar, DollarSign, Lock, MapPin, Star, X } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
-import { useFavorites } from '../hooks/useFavorites'
-import type { ProcessedEvent } from '../services/eventsService'
-import { getCachedEvents } from '../services/eventsService'
+import { useFavorites } from '../../hooks/useFavorites'
+import type { ProcessedEvent } from '../../services/eventsService'
+import { getCachedEvents } from '../../services/eventsService'
 
 interface FavoritesSectionProps {
   onClose?: () => void

@@ -1,7 +1,7 @@
 import { AlertTriangle, Calendar, DollarSign, File, MapPin, Star, StarOff } from 'lucide-react'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { useFavorites } from '../hooks/useFavorites'
-import type { ProcessedEvent } from '../services/eventsService'
+import { useFavorites } from '../../hooks/useFavorites'
+import type { ProcessedEvent } from '../../services/eventsService'
 import {
   fetchOSUEvents,
   filterEventsByCategory,
@@ -9,7 +9,7 @@ import {
   getEventCategories,
   hasMoreEventsAvailable,
   loadMoreEvents
-} from '../services/eventsService'
+} from '../../services/eventsService'
 import FavoritesSection from './FavoritesSection'
 import Pagination from './Pagination'
 

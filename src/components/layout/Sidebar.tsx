@@ -1,7 +1,7 @@
 import { signOut } from 'firebase/auth';
 import { Mail, Share2, X } from 'lucide-react';
 import React, { useState } from 'react';
-import { auth } from '../firebase/auth'; // Adjust the import path as necessary
+import { auth } from '../../lib/firebase/auth';
 
 interface SidebarProps {
   isOpen: boolean
