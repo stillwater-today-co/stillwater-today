@@ -485,23 +485,8 @@ This project is licensed under the MIT License.
 - 🐛 Check browser console for client-side errors
 - 📖 Read `FIREBASE_FUNCTIONS_MIGRATION.md` for function setup
 
-## 🚀 Future Enhancements
-
-- [ ] Real-time event submissions from community members
-- [ ] Push notifications for important updates and favorites
-- [ ] Advanced weather visualizations and radar maps
-- [ ] Event calendar view with iCal export
-- [ ] Social media sharing for events
-- [ ] User event reviews and ratings
-- [ ] Mobile app (React Native)
-- [ ] Admin dashboard for content moderation
-- [ ] Email digest subscriptions
-- [ ] Enhanced search with fuzzy matching
-- [ ] Event categories and tags
-- [ ] Location-based event recommendations
-
 ---
 
 **Built with ❤️ for the Stillwater, Oklahoma community.**
 
-**Team**: OSU CS Capstone Project 2025
+**Team**: OSU CS Software Engineering Group: Stillwater Today
