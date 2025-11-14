@@ -76,21 +76,10 @@ const AISummary: React.FC = () => {
     loadSummary(false)
   }, [loadSummary])
 
-  const handleRefresh = () => {
-    loadSummary(true)
-  }
-
   return (
     <section className="ai-summary">
       <div className="summary-header">
         <h2>Daily Summary</h2>
-        <button 
-          className="refresh-btn"
-          onClick={handleRefresh}
-          disabled={isLoading}
-        >
-          {isLoading ? 'Refreshing...' : 'Refresh'}
-        </button>
       </div>
       
       <div className="summary-content">
