@@ -98,6 +98,28 @@ export interface ProcessedEvent {
   popularityScore?: number // Calculated popularity score
 }
 
+// Remove duplicate events across sources/pages
+function dedupeEvents(events: ProcessedEvent[]): ProcessedEvent[] {
+  const seenById = new Set<number>()
+  const seenByTitleTime = new Set<string>()
+  const unique: ProcessedEvent[] = []
+
+  for (const evt of events) {
+    const title = (evt.title || '').trim().toLowerCase()
+    const timeKey = `${title}|${evt.rawDate.getTime()}`
+
+    if (seenById.has(evt.id) || seenByTitleTime.has(timeKey)) {
+      continue
+    }
+
+    seenById.add(evt.id)
+    seenByTitleTime.add(timeKey)
+    unique.push(evt)
+  }
+
+  return unique
+}
+
 // Cache for API responses (30 minutes cache)
 let eventsCache: { 
   data: ProcessedEvent[]; 
@@ -203,9 +225,12 @@ async function fetchEventsFromPages(
         } as ProcessedEvent
       })
       .filter((event): event is ProcessedEvent => event !== null)
+    
+    // Dedupe across sources/pages, then sort by date
+    const uniqueEvents = dedupeEvents(processedEvents)
       .sort((a, b) => a.rawDate.getTime() - b.rawDate.getTime())
 
-    return processedEvents
+    return uniqueEvents
   } catch (error) {
     console.error('Events API error:', error)
     throw new Error(`Failed to fetch OSU events: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -514,9 +539,15 @@ export async function loadMoreEvents(currentEvents: ProcessedEvent[]): Promise<P
     // Add new events to cache
     eventsCache.data.push(...newEvents)
 
-    // Filter out events that are already displayed
+    // Filter out events that are already displayed (by id and by title+time)
     const currentIds = new Set(currentEvents.map(e => e.id))
-    const uniqueNewEvents = newEvents.filter(e => !currentIds.has(e.id))
+    const currentTitleTime = new Set(
+      currentEvents.map(e => `${(e.title || '').trim().toLowerCase()}|${e.rawDate.getTime()}`)
+    )
+    const uniqueNewEvents = newEvents.filter(e => {
+      const key = `${(e.title || '').trim().toLowerCase()}|${e.rawDate.getTime()}`
+      return !currentIds.has(e.id) && !currentTitleTime.has(key)
+    })
 
     return uniqueNewEvents
 
@@ -537,6 +568,9 @@ export async function loadMoreCategoryEvents(
 
   try {
     const currentIds = new Set(currentEvents.map(e => e.id))
+    const currentTitleTime = new Set(
+      currentEvents.map(e => `${(e.title || '').trim().toLowerCase()}|${e.rawDate.getTime()}`)
+    )
     const foundEvents: ProcessedEvent[] = []
     let attempts = 0
     const maxAttempts = 5 // Limit attempts to avoid infinite loops
@@ -563,9 +597,12 @@ export async function loadMoreCategoryEvents(
       // Add new events to cache
       eventsCache.data.push(...newEvents)
 
-      // Find events in the requested category that aren't already displayed
+      // Find events in the requested category that aren't already displayed (by id and title+time)
       const categoryEvents = newEvents
-        .filter(e => e.category === category && !currentIds.has(e.id))
+        .filter(e => {
+          const key = `${(e.title || '').trim().toLowerCase()}|${e.rawDate.getTime()}`
+          return e.category === category && !currentIds.has(e.id) && !currentTitleTime.has(key)
+        })
       
       foundEvents.push(...categoryEvents)
       attempts++

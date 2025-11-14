@@ -1,3 +1,4 @@
+import { AlertTriangle, CheckCircle, Cloud, CloudRain, CloudSnow, RefreshCw, Sun, Zap } from 'lucide-react'
 import React, { useCallback, useEffect, useState } from 'react'
 import { fetchWeatherData, getCachedWeather, hasCachedWeather } from '../services/weatherService'
 
@@ -152,12 +153,35 @@ const Weather: React.FC = () => {
     loadWeatherData(true) // Force refresh
   }
 
+  // Map semantic weather tokens (from the service) to lucide icons
+  const renderWeatherIcon = (token: string, size: number = 28) => {
+    switch (token) {
+      case 'sun':
+        return <Sun size={size} />
+      case 'partly':
+        // Use Sun for partly cloudy — keeps it simple and consistent
+        return <Sun size={size} />
+      case 'cloud':
+        return <Cloud size={size} />
+      case 'rain':
+        return <CloudRain size={size} />
+      case 'thunder':
+        return <Zap size={size} />
+      case 'snow':
+        return <CloudSnow size={size} />
+      case 'fog':
+        return <Cloud size={size} />
+      default:
+        return <Sun size={size} />
+    }
+  }
+
   return (
     <section className="weather-section">
       {/* Toast notification */}
       {showToast && (
         <div className="toast-notification">
-          <span>✅ {toastMessage}</span>
+          <span><CheckCircle size={14} /> {toastMessage}</span>
         </div>
       )}
       
@@ -188,9 +212,7 @@ const Weather: React.FC = () => {
             onClick={handleRefresh}
             disabled={isLoading}
           >
-            <span className="refresh-icon">
-              {isLoading ? '↻' : '↻'}
-            </span>
+            <span className="refresh-icon"><RefreshCw size={14} className={isLoading ? 'spinning' : ''} /></span>
             <span className="refresh-text">
               {isLoading ? 'Refreshing...' : 'Refresh'}
             </span>
@@ -200,8 +222,8 @@ const Weather: React.FC = () => {
       
       <div className="weather-content">
         {error && !weatherData ? (
-          <div className="weather-error">
-            <div className="error-icon">⚠️</div>
+      <div className="weather-error">
+        <div className="error-icon"><AlertTriangle size={18} /></div>
             <h3>Weather Unavailable</h3>
             <p>{error}</p>
             <button className="refresh-btn" onClick={handleRefresh} disabled={isLoading}>
@@ -217,12 +239,12 @@ const Weather: React.FC = () => {
           <div className="weather-placeholder">
             {error && (
               <div className="weather-error-banner">
-                <span>⚠️ Using cached data: {error}</span>
+                <span><AlertTriangle size={14} /> Using cached data: {error}</span>
               </div>
             )}
             
             <div className="weather-main">
-              <div className="weather-icon">{weatherData.current.icon}</div>
+              <div className="weather-icon">{renderWeatherIcon(weatherData.current.icon)}</div>
               <div className="weather-temp">
                 {unit === 'imperial'
                   ? `${weatherData.current.temperatureValue}°F`
@@ -273,7 +295,7 @@ const Weather: React.FC = () => {
                     aria-label={`Open report for ${day.date}`}
                   >
                     <div className="forecast-date">{day.date}</div>
-                    <div className="forecast-icon">{day.icon}</div>
+                    <div className="forecast-icon">{renderWeatherIcon(day.icon, 18)}</div>
                     <div className="forecast-temps">
                       {unit === 'imperial'
                         ? `${day.highValue}°F / ${day.lowValue}°F`

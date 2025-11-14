@@ -27,7 +27,12 @@
         "**/.*",
         "**/node_modules/**"
       ],
-      "cleanUrls": true
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
     },
     {
       "target": "prod",
@@ -37,7 +42,12 @@
         "**/.*",
         "**/node_modules/**"
       ],
-      "cleanUrls": true
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
     }
   ]
 }

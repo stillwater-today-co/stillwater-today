@@ -1,10 +1,48 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Temporarily allow all authenticated users to read and write
-    // This is for testing - should be more restrictive in production
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    // Users collection - users can only read/write their own document
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+    }
+    
+    // Feedbacks collection - authenticated users can create feedback
+    // Users can read their own feedback submissions
+    match /feedbacks/{feedbackId} {
+      allow create: if isSignedIn();
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+    
+    // Weather collection - public read, only Cloud Functions can write
+    match /weather/{weatherId} {
+      allow read: if true;
+      allow write: if false; // Only Cloud Functions with admin SDK can write
+    }
+    
+    // Events collection - public read, only admins can write
+    match /events/{eventId} {
+      allow read: if true;
+      allow write: if false; // Only Cloud Functions with admin SDK can write
+    }
+    
+    // Briefings collection - public read, only Cloud Functions can write
+    match /briefings/{briefingId} {
+      allow read: if true;
+      allow write: if false; // Only Cloud Functions with admin SDK can write
     }
   }
 }

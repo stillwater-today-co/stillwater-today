@@ -1,17 +1,19 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import { AlertTriangle, Calendar, DollarSign, File, MapPin, Star, StarOff } from 'lucide-react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useFavorites } from '../hooks/useFavorites'
 import type { ProcessedEvent } from '../services/eventsService'
 import {
   fetchOSUEvents,
-  filterAndSortEvents,
+  filterEventsByCategory,
+  filterEventsByDate,
   getEventCategories,
-  getRemainingEventsCount,
   hasMoreEventsAvailable,
-  loadMoreCategoryEvents,
   loadMoreEvents
 } from '../services/eventsService'
 import FavoritesSection from './FavoritesSection'
 import Pagination from './Pagination'
+
+const EVENTS_PER_PAGE = 6
 
 const EventsSection: React.FC = () => {
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'upcoming'>('all')
@@ -22,134 +24,73 @@ const EventsSection: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [availableCategories, setAvailableCategories] = useState<string[]>([])
   const [showFavorites, setShowFavorites] = useState(false)
-  const [isRefreshing, setIsRefreshing] = useState(false)
-  
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
-  const [eventsPerPage] = useState(6) // Show 6 events per page (reduced for faster page loads)
   
-  // Favorites hook
-  const { toggleFavorite, isFavorited, isAuthenticated } = useFavorites()
+  const { toggleFavorite, isFavorited, isPending, isAuthenticated } = useFavorites()
 
-  // Auto-load more events when filtered results are too few
+  // Load events on mount
   useEffect(() => {
-    const checkAndLoadMore = async () => {
-      const currentFiltered = filterAndSortEvents(events, dateFilter, categoryFilter, false)
-      const hasMoreAvailable = hasMoreEventsAvailable()
-      
-      // If we have fewer than 5 events for a specific category and more are available
-      if (categoryFilter !== 'all' && currentFiltered.length < 5 && hasMoreAvailable && !loadingMore) {
-        try {
-          console.log(`Auto-loading more ${categoryFilter} events due to low count`)
-          const newEvents = await loadMoreCategoryEvents(categoryFilter, events)
-          if (newEvents.length > 0) {
-            setEvents(prevEvents => [...prevEvents, ...newEvents])
-            
-            // Update available categories
-            const allEvents = [...events, ...newEvents]
-            const categories = getEventCategories(allEvents)
-            setAvailableCategories(categories)
-          }
-        } catch (err) {
-          console.error('Auto-load more events failed:', err)
-        }
-      }
-    }
-
-    // Small delay to prevent too many rapid requests
-    const timeout = setTimeout(checkAndLoadMore, 500)
-    return () => clearTimeout(timeout)
-  }, [categoryFilter, dateFilter, events, loadingMore])
-
-  const loadEvents = useCallback(async (forceRefresh: boolean = false) => {
-    try {
-      // Only show main loading spinner on initial load or filter refresh, not on manual refresh
-      if (!isRefreshing && events.length === 0) {
+    const loadEvents = async () => {
+      try {
         setLoading(true)
-      }
-      setError(null)
-      const osuEvents = await fetchOSUEvents(forceRefresh)
-      setEvents(osuEvents)
-      
-      // Update available categories
-      const categories = getEventCategories(osuEvents)
-      setAvailableCategories(categories)
-    } catch (err) {
-      console.error('Failed to load events:', err)
-      setError(err instanceof Error ? err.message : 'Failed to load events')
-    } finally {
-      if (!isRefreshing) {
+        setError(null)
+        const osuEvents = await fetchOSUEvents(false)
+        // Events are already sorted by date in eventsService
+        setEvents(osuEvents)
+        const categories = getEventCategories(osuEvents)
+        setAvailableCategories(categories)
+      } catch (err) {
+        console.error('Failed to load events:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load events')
+      } finally {
         setLoading(false)
       }
     }
-  }, [isRefreshing, events.length])
-
-  // Load OSU events on component mount
-  useEffect(() => {
     loadEvents()
-  }, [loadEvents])
+  }, [])
 
-  const handleRefresh = async () => {
-    if (isRefreshing || loading) return // Prevent double refresh
-    
-    setIsRefreshing(true)
-    try {
-      await loadEvents(true) // Force refresh
-    } finally {
-      // Add a small delay to show the refresh completed state
-      setTimeout(() => {
-        setIsRefreshing(false)
-      }, 500)
+  // Filter and sort events - sorted by date (earliest first)
+  const filteredEvents = useMemo(() => {
+    let filtered = filterEventsByDate(events, dateFilter)
+    if (categoryFilter !== 'all') {
+      filtered = filterEventsByCategory(filtered, categoryFilter)
     }
-  }
+    // Sort by date (earliest first) - events should already be sorted, but ensure it
+    return filtered.sort((a, b) => a.rawDate.getTime() - b.rawDate.getTime())
+  }, [events, dateFilter, categoryFilter])
 
-
-
-  // Filter events and apply pagination - sort by popularity for first 2 pages
-  const shouldSortByPopularity = currentPage <= 2
-  const allFilteredEvents = filterAndSortEvents(events, dateFilter, categoryFilter, shouldSortByPopularity)
-  
-  // Debug logging
-  console.log('Filter State:', { dateFilter, categoryFilter, totalEvents: events.length, filteredEvents: allFilteredEvents.length })
-  
-  const totalPages = Math.ceil(allFilteredEvents.length / eventsPerPage)
-  const startIndex = (currentPage - 1) * eventsPerPage
-  const endIndex = startIndex + eventsPerPage
-  const filteredEvents = allFilteredEvents.slice(startIndex, endIndex)
-  
-  const hasMoreAvailable = hasMoreEventsAvailable()
-  const remainingCount = getRemainingEventsCount()
+  // Pagination
+  const totalPages = Math.ceil(filteredEvents.length / EVENTS_PER_PAGE)
+  const startIndex = (currentPage - 1) * EVENTS_PER_PAGE
+  const endIndex = startIndex + EVENTS_PER_PAGE
+  const paginatedEvents = filteredEvents.slice(startIndex, endIndex)
 
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1)
   }, [dateFilter, categoryFilter])
 
-  // Handle page change - load more events if needed
-  const handlePageChange = async (page: number) => {
-    const allFilteredEvents = filterAndSortEvents(events, dateFilter, categoryFilter, page <= 2)
-    const totalPages = Math.ceil(allFilteredEvents.length / eventsPerPage)
-    const hasMoreAvailable = hasMoreEventsAvailable()
+  // Handle page change - load more if needed
+  const handlePageChange = useCallback(async (page: number) => {
+    const hasMore = hasMoreEventsAvailable()
     
-    // If we're going to the last page and there are more events available, load more
-    if (page === totalPages && hasMoreAvailable && !loadingMore) {
+    // If going to last page and more events available, load more
+    if (page === totalPages && hasMore && !loadingMore) {
       try {
         setLoadingMore(true)
-        let newEvents: ProcessedEvent[]
-        
-        if (categoryFilter === 'all') {
-          newEvents = await loadMoreEvents(events)
-        } else {
-          newEvents = await loadMoreCategoryEvents(categoryFilter, events)
-        }
-
+        const newEvents = await loadMoreEvents(events)
         if (newEvents.length > 0) {
-          setEvents(prevEvents => [...prevEvents, ...newEvents])
-          
-          // Update available categories with new events
-          const updatedEvents = [...events, ...newEvents]
-          const categories = getEventCategories(updatedEvents)
-          setAvailableCategories(categories)
+          setEvents(prev => {
+            // Merge and sort by date
+            const merged = [...prev, ...newEvents]
+              .filter((event, index, array) => 
+                array.findIndex(e => e.id === event.id) === index
+              )
+              .sort((a, b) => a.rawDate.getTime() - b.rawDate.getTime())
+            const categories = getEventCategories(merged)
+            setAvailableCategories(categories)
+            return merged
+          })
         }
       } catch (err) {
         console.error('Failed to load more events:', err)
@@ -160,37 +101,16 @@ const EventsSection: React.FC = () => {
     }
     
     setCurrentPage(page)
-    // Scroll to top of events section
     document.querySelector('.events-section')?.scrollIntoView({ behavior: 'smooth' })
-  }
+  }, [totalPages, events, loadingMore])
 
-  // Handle filter changes - filters should work immediately on loaded events
-  const handleDateFilterChange = (newFilter: 'all' | 'today' | 'upcoming') => {
-    console.log('Date filter changed to:', newFilter)
-    setDateFilter(newFilter)
-    setCurrentPage(1)
-  }
-
-  // Handle category filter changes - filters should work immediately on loaded events  
-  const handleCategoryFilterChange = (newCategory: string) => {
-    console.log('Category filter changed to:', newCategory)
-    setCategoryFilter(newCategory)
-    setCurrentPage(1)
-  }
-
-  // Show loading state
+  // Loading state
   if (loading) {
     return (
       <section className="events-section">
         <div className="events-header">
           <div className="events-title-area">
             <h2>Events & Activities</h2>
-            <button 
-              className="refresh-btn loading"
-              disabled={true}
-            >
-              <span className="refresh-icon">↻</span>
-            </button>
           </div>
         </div>
         <div className="loading-placeholder">
@@ -201,31 +121,19 @@ const EventsSection: React.FC = () => {
     )
   }
 
-  // Show error state with fallback
+  // Error state
   if (error && events.length === 0) {
     return (
       <section className="events-section">
         <div className="events-header">
           <div className="events-title-area">
             <h2>Events & Activities</h2>
-            <button 
-              className="refresh-btn"
-              onClick={handleRefresh}
-            >
-              <span className="refresh-icon">↻</span>
-            </button>
           </div>
         </div>
         <div className="events-error">
-          <div className="error-icon">⚠️</div>
+          <div className="error-icon"><AlertTriangle size={18} /></div>
           <h3>Unable to Load Events</h3>
           <p>{error}</p>
-          <button 
-            className="refresh-btn" 
-            onClick={handleRefresh}
-          >
-            Try Again
-          </button>
         </div>
       </section>
     )
@@ -244,49 +152,38 @@ const EventsSection: React.FC = () => {
                   onClick={() => setShowFavorites(!showFavorites)}
                   title="View your favorite events"
                 >
-                  <span className="favorites-icon">⭐</span>
+                  <span className="favorites-icon"><Star size={16} /></span>
                   <span>Favorites</span>
                 </button>
               </>
             )}
-            <button 
-              className={`refresh-btn ${isRefreshing ? 'loading' : ''}`}
-              onClick={handleRefresh}
-              disabled={isRefreshing || loading}
-              title="Refresh events"
-            >
-              <span className="refresh-icon">
-                {isRefreshing ? '↻' : '↻'}
-              </span>
-            </button>
           </div>
         </div>
         <div className="events-filters">
           <div className="date-filters">
-            <button 
+            <button
               className={`filter-btn ${dateFilter === 'all' ? 'active' : ''}`}
-              onClick={() => handleDateFilterChange('all')}
+              onClick={() => setDateFilter('all')}
             >
               All Events
             </button>
-            <button 
+            <button
               className={`filter-btn ${dateFilter === 'today' ? 'active' : ''}`}
-              onClick={() => handleDateFilterChange('today')}
+              onClick={() => setDateFilter('today')}
             >
               Today
             </button>
-            <button 
+            <button
               className={`filter-btn ${dateFilter === 'upcoming' ? 'active' : ''}`}
-              onClick={() => handleDateFilterChange('upcoming')}
+              onClick={() => setDateFilter('upcoming')}
             >
               Upcoming
             </button>
           </div>
-          
           <div className="category-filter">
-            <select 
-              value={categoryFilter} 
-              onChange={(e) => handleCategoryFilterChange(e.target.value)}
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
               className="category-dropdown"
             >
               <option value="all">All Categories</option>
@@ -296,21 +193,15 @@ const EventsSection: React.FC = () => {
                 </option>
               ))}
             </select>
-
           </div>
         </div>
       </div>
 
-      {allFilteredEvents.length > 0 && (
+      {filteredEvents.length > 0 && (
         <div className="events-count">
-          Showing {startIndex + 1}-{Math.min(endIndex, allFilteredEvents.length)} of {allFilteredEvents.length} event{allFilteredEvents.length === 1 ? '' : 's'}
+          Showing {startIndex + 1}-{Math.min(endIndex, filteredEvents.length)} of {filteredEvents.length} event{filteredEvents.length === 1 ? '' : 's'}
           {categoryFilter !== 'all' && ` in ${categoryFilter}`}
-          {dateFilter !== 'all' && ` for ${
-            dateFilter === 'today' ? 'today' : 
-            dateFilter === 'upcoming' ? 'upcoming dates' : 'all dates'
-          }`}
-          {currentPage <= 2 && ' (popular events first)'}
-          {totalPages > 1 && ` (Page ${currentPage} of ${totalPages})`}
+          {dateFilter !== 'all' && ` for ${dateFilter === 'today' ? 'today' : 'upcoming dates'}`}
         </div>
       )}
 
@@ -319,24 +210,15 @@ const EventsSection: React.FC = () => {
         <FavoritesSection onClose={() => setShowFavorites(false)} />
       )}
 
-      <div className={`events-grid ${isRefreshing ? 'refreshing' : ''}`}>
-        {isRefreshing && (
-          <div className="events-refreshing-overlay">
-            <div className="refreshing-indicator">
-              <span className="loading-spinner-small"></span>
-              <span>Refreshing events...</span>
-            </div>
-          </div>
-        )}
-        
+      <div className="events-grid">
         {error && events.length > 0 && (
           <div className="events-error-banner">
-            <span>⚠️ Some events may be cached: {error}</span>
+            <span><AlertTriangle size={14} /> Some events may be cached: {error}</span>
           </div>
         )}
         
-        {filteredEvents.length > 0 ? (
-          filteredEvents.map(event => (
+        {paginatedEvents.length > 0 ? (
+          paginatedEvents.map(event => (
             <div key={event.id} className="event-card">
               <div className="event-header">
                 <h3 className="event-title">{event.title}</h3>
@@ -357,16 +239,16 @@ const EventsSection: React.FC = () => {
               </div>
               <div className="event-details">
                 <div className="event-detail">
-                  <span className="detail-icon">📅</span>
+                  <Calendar size={14} className="detail-icon" />
                   <span>{event.date} at {event.time}</span>
                 </div>
                 <div className="event-detail">
-                  <span className="detail-icon">📍</span>
+                  <MapPin size={14} className="detail-icon" />
                   <span>{event.location}</span>
                 </div>
                 {event.cost && (
                   <div className="event-detail">
-                    <span className="detail-icon">💰</span>
+                    <DollarSign size={14} className="detail-icon" />
                     <span>{event.cost}</span>
                   </div>
                 )}
@@ -374,9 +256,9 @@ const EventsSection: React.FC = () => {
               <p className="event-description">{event.description}</p>
               <div className="event-actions">
                 {event.url && (
-                  <a 
-                    href={event.url} 
-                    target="_blank" 
+                  <a
+                    href={event.url}
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="event-btn"
                   >
@@ -385,52 +267,65 @@ const EventsSection: React.FC = () => {
                 )}
                 {isAuthenticated ? (
                   <button
-                    onClick={() => toggleFavorite(event.id)}
+                    onClick={async () => {
+                      // Check favorite status BEFORE toggling
+                      const wasFavorited = isFavorited(event.id)
+                      const result = await toggleFavorite(event.id)
+                      // If favorited successfully, dispatch event with event data for immediate display
+                      if (result) {
+                        // Action is the opposite of what it was before (if it was favorited, we removed it)
+                        const action = wasFavorited ? 'removed' : 'added'
+                        window.dispatchEvent(new CustomEvent('favorites-updated', { 
+                          detail: { eventId: event.id, eventData: event, action }
+                        }))
+                      }
+                    }}
                     className={`event-btn save-btn ${isFavorited(event.id) ? 'favorited' : ''}`}
-                    title={isFavorited(event.id) ? 'Remove from favorites' : 'Save to favorites'}
+                    title={isFavorited(event.id) ? 'Remove from favorites' : 'Favorite this event'}
+                    aria-pressed={isFavorited(event.id)}
+                    disabled={isPending && isPending(event.id)}
                   >
-                    <span className="save-icon">
-                      {isFavorited(event.id) ? '⭐' : '☆'}
-                    </span>
-                    {isFavorited(event.id) ? 'Saved' : 'Save'}
+                      <span className="save-icon">
+                        <Star size={14} className="favorite-icon" />
+                      </span>
+                    {isPending && isPending(event.id) ? 'Favoriting...' : (isFavorited(event.id) ? 'Favorited' : 'Favorite')}
                   </button>
                 ) : (
                   <button
                     className="event-btn save-btn disabled"
                     disabled
-                    title="Sign in to save events"
+                    title="Sign in to favorite events"
                   >
-                    <span className="save-icon">☆</span>
-                    Save
+                    <span className="save-icon"><StarOff size={14} /></span>
+                    Favorite
                   </button>
                 )}
               </div>
             </div>
           ))
-        ) : allFilteredEvents.length > 0 ? (
+        ) : filteredEvents.length > 0 ? (
           <div className="no-events">
-            <div className="no-events-icon">📄</div>
+            <div className="no-events-icon"><File size={20} /></div>
             <h3>No events on this page</h3>
             <p>Try going to a different page or adjusting your filters.</p>
           </div>
         ) : (
           <div className="no-events">
-            <div className="no-events-icon">📅</div>
+            <div className="no-events-icon"><File size={20} /></div>
             <h3>No events found</h3>
             <p>
-              {dateFilter === 'today' 
+              {dateFilter === 'today'
                 ? "No events scheduled for today. Try 'Upcoming' to see future events."
-                : dateFilter === 'upcoming' 
-                ? "No upcoming events found. The events may be cached - try refreshing."
-                : "Try adjusting your filters or check back later for new OSU events."
-              }
+                : dateFilter === 'upcoming'
+                ? "No upcoming events found. Try refreshing or check back later."
+                : "Try adjusting your filters or check back later for new OSU events."}
             </p>
           </div>
         )}
       </div>
 
-      {/* Pagination Section */}
-      {allFilteredEvents.length > eventsPerPage && (
+      {/* Pagination */}
+      {filteredEvents.length > EVENTS_PER_PAGE && (
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
@@ -439,17 +334,10 @@ const EventsSection: React.FC = () => {
         />
       )}
 
-      {/* Additional events info */}
-      {hasMoreAvailable && (
-        <div className="more-events-info">
-          <p className="remaining-count">
-            {remainingCount > 0 && `${remainingCount}+ more events available - `}
-            Use pagination to load more events from OSU
-          </p>
-        </div>
-      )}
+      {/* Removed footer that displayed a remaining events count */}
     </section>
   )
 }
 
 export default EventsSection
+

@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import { Calendar, DollarSign, Lock, MapPin, Star, X } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
 import { useFavorites } from '../hooks/useFavorites'
-import { getCachedEvents } from '../services/eventsService'
 import type { ProcessedEvent } from '../services/eventsService'
+import { getCachedEvents } from '../services/eventsService'
 
 interface FavoritesSectionProps {
   onClose?: () => void
@@ -12,99 +13,101 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({ onClose }) => {
   const [favoriteEvents, setFavoriteEvents] = useState<ProcessedEvent[]>([])
   const [loading, setLoading] = useState(false)
 
+  // Store event data that was just favorited for immediate display
+  const [recentlyFavoritedEvents, setRecentlyFavoritedEvents] = useState<Map<number, ProcessedEvent>>(new Map())
+
   // Load favorite event details with real-time updates
   useEffect(() => {
     const loadFavoriteEvents = async () => {
-      console.log('Loading favorite events, favorites array:', favorites)
-      
       if (favorites.length === 0) {
-        console.log('No favorites, clearing favorite events')
         setFavoriteEvents([])
+        setLoading(false)
         return
       }
 
-      try {
-        setLoading(true)
-        
-        // First, try to get events from cache
-        const cachedEvents = getCachedEvents()
-        let foundEvents: ProcessedEvent[] = []
-        let missingEventIds: number[] = []
-        
-        if (cachedEvents) {
-          foundEvents = cachedEvents.filter(event => favorites.includes(event.id))
-          missingEventIds = favorites.filter(id => !foundEvents.some(event => event.id === id))
-          
-          console.log('Found in cache:', foundEvents.length, 'Missing from cache:', missingEventIds.length)
-        } else {
-          console.log('No cached events available, will need to fetch all')
-          missingEventIds = [...favorites]
-        }
-        
-        // If we have missing events, try to fetch them from API
-        if (missingEventIds.length > 0) {
-          console.log('Fetching missing events from API:', missingEventIds)
-          
-          // Import fetchOSUEvents dynamically to avoid circular imports
-          const { fetchOSUEvents } = await import('../services/eventsService')
-          
-          try {
-            // Fetch fresh events to find the missing ones
-            const allEvents = await fetchOSUEvents(false) // Don't force refresh, use existing cache
-            const missingEvents = allEvents.filter(event => missingEventIds.includes(event.id))
-            
-            console.log('Found missing events:', missingEvents.length)
-            foundEvents = [...foundEvents, ...missingEvents]
-          } catch (fetchError) {
-            console.error('Failed to fetch missing events:', fetchError)
-            // Continue with just the cached events
-          }
-        }
-        
-        // Remove duplicates and sort by date (earliest first)
-        const uniqueFavorites = foundEvents
-          .filter((event, index, array) => array.findIndex(e => e.id === event.id) === index)
-          .sort((a, b) => a.rawDate.getTime() - b.rawDate.getTime())
-        
-        console.log('Final favorite events:', uniqueFavorites.length, 'out of', favorites.length, 'favorites')
-        setFavoriteEvents(uniqueFavorites)
-        
-        // Log any still missing events
-        if (uniqueFavorites.length < favorites.length) {
-          const stillMissing = favorites.filter(id => !uniqueFavorites.some(event => event.id === id))
-          console.log('Still missing events (may be old/deleted):', stillMissing)
-        }
-        
-      } catch (error) {
-        console.error('Error loading favorite events:', error)
-        setFavoriteEvents([])
-      } finally {
-        setLoading(false)
+  // Get ALL events from cache (not just the subset)
+  const cachedEvents = getCachedEvents()
+      let foundEvents: ProcessedEvent[] = []
+      
+      if (cachedEvents && cachedEvents.length > 0) {
+        // Search through ALL cached events
+        foundEvents = cachedEvents.filter(event => favorites.includes(event.id))
       }
+      
+      // Check recently favorited events for any we haven't found yet
+      const missingIds = favorites.filter(id => !foundEvents.some(event => event.id === id))
+      missingIds.forEach(id => {
+        const recentEvent = recentlyFavoritedEvents.get(id)
+        if (recentEvent && !foundEvents.some(e => e.id === id)) {
+          foundEvents.push(recentEvent)
+        }
+      })
+      
+      // Sort by date (earliest first) and display immediately
+      const sortedEvents = foundEvents
+        .filter((event, index, array) => array.findIndex(e => e.id === event.id) === index)
+        .sort((a, b) => a.rawDate.getTime() - b.rawDate.getTime())
+      
+      setFavoriteEvents(sortedEvents)
+      setLoading(false)
     }
 
     loadFavoriteEvents()
-  }, [favorites])
+    
+    // Listen for favorites-updated event to reload when an event is favorited
+    const handleFavoritesUpdated = (e: Event) => {
+      const customEvent = e as CustomEvent<{ eventId: number; eventData: ProcessedEvent; action: 'added' | 'removed' }>
+      if (customEvent.detail) {
+        const { eventId, eventData, action } = customEvent.detail
+        if (action === 'added' && eventData) {
+          // Store the event data for immediate display
+          setRecentlyFavoritedEvents(prev => {
+            const newMap = new Map(prev)
+            newMap.set(eventId, eventData)
+            return newMap
+          })
+          // Immediately add to favorites display
+          setFavoriteEvents(prev => {
+            if (prev.some(e => e.id === eventId)) return prev
+            const updated = [...prev, eventData].sort((a, b) => a.rawDate.getTime() - b.rawDate.getTime())
+            return updated
+          })
+        } else if (action === 'removed') {
+          // Remove from recently favorited
+          setRecentlyFavoritedEvents(prev => {
+            const newMap = new Map(prev)
+            newMap.delete(eventId)
+            return newMap
+          })
+          // Immediately remove from favorites display
+          setFavoriteEvents(prev => prev.filter(e => e.id !== eventId))
+        }
+      } else {
+        // If no detail, just reload
+        loadFavoriteEvents()
+      }
+    }
+    
+    window.addEventListener('favorites-updated', handleFavoritesUpdated as EventListener)
+    return () => {
+      window.removeEventListener('favorites-updated', handleFavoritesUpdated as EventListener)
+    }
+  }, [favorites, recentlyFavoritedEvents])
 
   const handleRemoveFavorite = async (eventId: number) => {
-    console.log('Removing favorite event:', eventId)
-    
     // Optimistically update local state for immediate feedback
     setFavoriteEvents(prev => prev.filter(event => event.id !== eventId))
     
     // Update the favorites in the background
     const result = await toggleFavorite(eventId)
-    console.log('Toggle favorite result:', result)
     
-    // If the operation failed, we could revert the optimistic update here
+    // If the operation failed, reload to get the correct state
     if (!result) {
-      console.log('Failed to remove favorite, reverting optimistic update')
-      // Reload to get the correct state
       const cachedEvents = getCachedEvents()
       if (cachedEvents) {
-        const userFavorites = cachedEvents.filter(event => 
-          favorites.includes(event.id)
-        )
+        const userFavorites = cachedEvents
+          .filter(event => favorites.includes(event.id))
+          .sort((a, b) => a.rawDate.getTime() - b.rawDate.getTime())
         setFavoriteEvents(userFavorites)
       }
     }
@@ -117,14 +120,14 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({ onClose }) => {
           <h3>Favorite Events</h3>
           {onClose && (
             <button className="close-btn" onClick={onClose}>
-              ✕
+              <X size={16} />
             </button>
           )}
         </div>
         <div className="favorites-empty">
-          <div className="empty-icon">🔐</div>
+          <div className="empty-icon"><Lock size={20} /></div>
           <h4>Sign In Required</h4>
-          <p>Please sign in to view and save your favorite events.</p>
+          <p>Please sign in to view and favorite events.</p>
         </div>
       </div>
     )
@@ -137,7 +140,7 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({ onClose }) => {
           <h3>Favorite Events</h3>
           {onClose && (
             <button className="close-btn" onClick={onClose}>
-              ✕
+              <X size={16} />
             </button>
           )}
         </div>
@@ -161,9 +164,9 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({ onClose }) => {
           )}
         </div>
         <div className="favorites-empty">
-          <div className="empty-icon">⭐</div>
+          <div className="empty-icon"><Star size={20} /></div>
           <h4>No Favorites Yet</h4>
-          <p>Start saving events you're interested in by clicking the star button on any event.</p>
+          <p>Start favoriting events you're interested in by clicking the star button on any event.</p>
         </div>
       </div>
     )
@@ -190,7 +193,7 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({ onClose }) => {
                 onClick={() => handleRemoveFavorite(event.id)}
                 title="Remove from favorites"
               >
-                ⭐
+                <Star size={16} />
               </button>
             </div>
             
@@ -211,16 +214,16 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({ onClose }) => {
             
             <div className="event-details">
               <div className="event-detail">
-                <span className="detail-icon">📅</span>
+                <Calendar size={14} className="detail-icon" />
                 <span>{event.date} at {event.time}</span>
               </div>
               <div className="event-detail">
-                <span className="detail-icon">📍</span>
+                <MapPin size={14} className="detail-icon" />
                 <span>{event.location}</span>
               </div>
               {event.cost && (
                 <div className="event-detail">
-                  <span className="detail-icon">💰</span>
+                  <DollarSign size={14} className="detail-icon" />
                   <span>{event.cost}</span>
                 </div>
               )}

@@ -7,10 +7,11 @@ export interface SubmitFeedbackResult {
   error?: unknown;
 }
 
-export async function submitFeedback(message: string): Promise<SubmitFeedbackResult> {
+export async function submitFeedback(message: string, userId: string): Promise<SubmitFeedbackResult> {
   try {
     const docRef = await addDoc(collection(firestore, 'feedbacks'), {
       message,
+      userId,
       createdAt: new Date().toISOString(),
     });
     return { success: true, id: docRef.id };
