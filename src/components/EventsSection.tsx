@@ -6,7 +6,6 @@ import {
   fetchOSUEvents,
   filterEventsByCategory,
   filterEventsByDate,
-  getEventCategories,
   hasMoreEventsAvailable,
   loadMoreEvents
 } from '../services/eventsService'
@@ -15,6 +14,9 @@ import Pagination from './Pagination'
 
 const EVENTS_PER_PAGE = 6
 
+// Fixed categories list
+const CATEGORIES = ['Academic', 'Athletic', 'Community', 'Health and Wellness', 'Other']
+
 const EventsSection: React.FC = () => {
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'upcoming'>('all')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
@@ -22,7 +24,6 @@ const EventsSection: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [availableCategories, setAvailableCategories] = useState<string[]>([])
   const [showFavorites, setShowFavorites] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   
@@ -37,8 +38,6 @@ const EventsSection: React.FC = () => {
         const osuEvents = await fetchOSUEvents(false)
         // Events are already sorted by date in eventsService
         setEvents(osuEvents)
-        const categories = getEventCategories(osuEvents)
-        setAvailableCategories(categories)
       } catch (err) {
         console.error('Failed to load events:', err)
         setError(err instanceof Error ? err.message : 'Failed to load events')
@@ -87,8 +86,6 @@ const EventsSection: React.FC = () => {
                 array.findIndex(e => e.id === event.id) === index
               )
               .sort((a, b) => a.rawDate.getTime() - b.rawDate.getTime())
-            const categories = getEventCategories(merged)
-            setAvailableCategories(categories)
             return merged
           })
         }
@@ -187,7 +184,7 @@ const EventsSection: React.FC = () => {
               className="category-dropdown"
             >
               <option value="all">All Categories</option>
-              {availableCategories.map(category => (
+              {CATEGORIES.map(category => (
                 <option key={category} value={category}>
                   {category}
                 </option>
