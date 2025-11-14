@@ -1,5 +1,5 @@
-// Simple thin wrapper around ZenQuotes API to provide positive quotes
-// Docs: https://docs.zenquotes.io/
+// Quote service using DummyJSON API for daily quotes
+// API docs: https://dummyjson.com/docs/quotes
 
 export interface Quote {
   text: string
@@ -8,43 +8,55 @@ export interface Quote {
 
 let cachedQuote: Quote | null = null
 let cacheTs = 0
-const CACHE_TTL = 60 * 60 * 1000 // 1 hour
+
+// Helper to check if cached quote is from today
+function isQuoteFromToday(): boolean {
+  if (!cachedQuote || cacheTs === 0) return false
+  
+  const cachedDate = new Date(cacheTs)
+  const today = new Date()
+  
+  return (
+    cachedDate.getDate() === today.getDate() &&
+    cachedDate.getMonth() === today.getMonth() &&
+    cachedDate.getFullYear() === today.getFullYear()
+  )
+}
 
 export async function fetchRandomQuote(): Promise<Quote> {
-  // Return cached if fresh
-  if (cachedQuote && (Date.now() - cacheTs) < CACHE_TTL) {
+  // Return cached if it's from today
+  if (cachedQuote && isQuoteFromToday()) {
     return cachedQuote
   }
 
   try {
-    // Use the free ZenQuotes random endpoint which returns an array with one object
-    const resp = await fetch('https://zenquotes.io/api/random')
+    // DummyJSON has 1453 quotes total, use deterministic selection based on day
+    const today = new Date()
+    const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 1000 / 60 / 60 / 24)
+    const quoteId = (dayOfYear % 1453) + 1 // Quote IDs are 1-indexed
+    
+    const resp = await fetch(`https://dummyjson.com/quotes/${quoteId}`)
     if (!resp.ok) {
       throw new Error(`Quote API failed: ${resp.status}`)
     }
     const data = await resp.json()
-    // Expected shape: [{ q: 'quote text', a: 'Author' }]
-    if (Array.isArray(data) && data.length > 0 && data[0].q) {
+    
+    // Response: { id: 1, quote: "text", author: "name" }
+    if (data && data.quote && data.author) {
       const q = {
-        text: String(data[0].q),
-        author: data[0].a ? String(data[0].a) : 'Unknown'
+        text: String(data.quote),
+        author: String(data.author)
       }
       cachedQuote = q
       cacheTs = Date.now()
       return q
     }
-    throw new Error('Unexpected quote response')
+    throw new Error('Unexpected quote response format')
   } catch (err) {
-    // log and fallback: small curated list
-    // keep the error visible in dev tools but continue with a safe fallback
-  console.debug('fetchRandomQuote failed', err)
-    const fallback: Quote = {
-      text: "Keep your face always toward the sunshine—and shadows will fall behind you.",
-      author: 'Walt Whitman'
-    }
-    cachedQuote = fallback
-    cacheTs = Date.now()
-    return fallback
+    console.error('Failed to fetch quote:', err)
+    cachedQuote = null
+    cacheTs = 0
+    throw err
   }
 }
 
