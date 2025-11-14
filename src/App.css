@@ -1629,6 +1629,7 @@
 .event-btn:hover {
   background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
   transform: translateY(-1px);
+  color: white;
 }
 
 .save-btn {
@@ -1805,6 +1806,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 1.5rem;
+  grid-auto-rows: 1fr;
 }
 
 .favorite-event-card {
@@ -1813,6 +1815,8 @@
   border-radius: 12px;
   padding: 1.5rem;
   transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .favorite-event-card:hover {
