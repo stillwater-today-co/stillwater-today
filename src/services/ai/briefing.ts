@@ -1,4 +1,4 @@
-import { getFunctions, httpsCallable } from 'firebase/functions'
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 /**
  * Generate today's events summary using Firebase Cloud Function
@@ -26,5 +26,3 @@ export async function generateTodayEventsSummary(options?: { limit?: number; for
     )
   }
 }
-
-

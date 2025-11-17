@@ -6,7 +6,7 @@ import {
   getUserFavoriteEvents,
   removeEventFromFavorites
 } from '../lib/firebase/firestore'
-import { getCachedEvents } from '../services/eventsService'
+import { getCachedEvents } from '../services/events'
 import { useAuth } from './useAuth'
 
 export function useFavorites() {
