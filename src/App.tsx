@@ -1,11 +1,11 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import './styles/App.css'
 import Auth from './components/auth/Auth'
-import { AuthProvider } from './contexts/AuthContext.tsx'
+import { AuthProvider } from './contexts/auth'
 import { useAuth } from './hooks/useAuth'
 import Feedback from './pages/Feedback'
 import Home from './pages/Home'
 import Profile from './pages/Profile'
+import './styles/App.css'
 
 
 function AppContent() {
