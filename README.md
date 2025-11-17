@@ -225,6 +225,7 @@ See `functions/README.md` for detailed function documentation.
 - `npm run build` - Create production build
 - `npm run preview` - Preview production build locally
 - `npm run lint` - Run ESLint for code quality checks
+- `npm run test` - Run unit tests with Vitest
 
 ## 🌐 Deployment
 
@@ -410,6 +411,7 @@ interface Feedback {
 
 ## 🧪 Testing & Quality
 
+- **Vitest**: Unit coverage focused on services (events formatting/filtering, quote caching)
 - **TypeScript**: Full type coverage with strict mode
 - **ESLint**: React and TypeScript linting rules
 - **Build Verification**: CI checks on every push
