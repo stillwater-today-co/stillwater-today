@@ -1,0 +1,87 @@
+/* Responsive Design Styles */
+
+@media (max-width: 768px) {
+  /* Layout adjustments */
+  .main-content.sidebar-open {
+    margin-left: 0;
+  }
+  
+  .sidebar {
+    width: 100%;
+    left: -100%;
+  }
+  
+  .scrollable-content {
+    padding: 1rem;
+  }
+  
+  /* Events section */
+  .events-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .events-filters {
+    gap: 0.75rem;
+  }
+  
+  .date-filters {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .category-dropdown {
+    width: 100%;
+  }
+  
+  .events-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .header-buttons {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .favorites-btn {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+  }
+  
+  /* Pagination */
+  .pagination {
+    padding: 1rem;
+  }
+  
+  .pagination-controls {
+    gap: 0.25rem;
+  }
+  
+  .pagination-btn {
+    min-width: 2rem;
+    height: 2rem;
+    font-size: 0.75rem;
+  }
+  
+  .pagination-jump {
+    font-size: 0.75rem;
+  }
+  
+  .page-input {
+    width: 3rem;
+  }
+  
+  /* Favorites */
+  .favorites-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .favorite-event-card {
+    padding: 1rem;
+  }
+  
+  /* Summary placeholders */
+  .placeholder-features {
+    grid-template-columns: 1fr;
+  }
+}
