@@ -238,7 +238,7 @@ async function fetchEventsFromPages(
 }
 
 // Convert date/time to user-friendly format
-function formatEventDateTime(startTime: string, allDay: boolean): { date: string; time: string; rawDate: Date } {
+export function formatEventDateTime(startTime: string, allDay: boolean): { date: string; time: string; rawDate: Date } {
   // Handle invalid or missing dates
   if (!startTime) {
     console.warn('No start time provided for event')
@@ -309,7 +309,7 @@ function formatEventDateTime(startTime: string, allDay: boolean): { date: string
 }
 
 // Clean up HTML description
-function cleanDescription(html: string, maxLength: number = 200): string {
+export function cleanDescription(html: string, maxLength: number = 200): string {
   // Remove HTML tags
   const text = html.replace(/<[^>]*>/g, ' ')
     .replace(/&[a-z]+;/gi, ' ') // Remove HTML entities
