@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { clearQuoteCache, fetchRandomQuote } from '../quotesService';
 
