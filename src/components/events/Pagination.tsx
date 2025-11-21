@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 
 interface PaginationProps {
   currentPage: number
@@ -13,11 +13,6 @@ const Pagination: React.FC<PaginationProps> = ({
   onPageChange,
   disabled = false
 }) => {
-  const [inputValue, setInputValue] = useState<string>(String(currentPage))
-
-  useEffect(() => {
-    setInputValue(String(currentPage))
-  }, [currentPage])
   const getPageNumbers = () => {
     const pages: (number | string)[] = []
     const maxVisiblePages = 7
