@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 
 interface PaginationProps {
   currentPage: number
@@ -13,11 +13,6 @@ const Pagination: React.FC<PaginationProps> = ({
   onPageChange,
   disabled = false
 }) => {
-  const [inputValue, setInputValue] = useState<string>(String(currentPage))
-
-  useEffect(() => {
-    setInputValue(String(currentPage))
-  }, [currentPage])
   const getPageNumbers = () => {
     const pages: (number | string)[] = []
     const maxVisiblePages = 7
@@ -103,29 +98,7 @@ const Pagination: React.FC<PaginationProps> = ({
         </button>
       </div>
 
-      <div className="pagination-jump">
-        <span>Go to:</span>
-        <input
-          type="number"
-          min={1}
-          max={totalPages}
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              const page = parseInt(inputValue, 10)
-              if (!isNaN(page) && page >= 1 && page <= totalPages) onPageChange(page)
-            }
-          }}
-          onBlur={() => {
-            const page = parseInt(inputValue, 10)
-            if (!isNaN(page) && page >= 1 && page <= totalPages) onPageChange(page)
-            else setInputValue(String(currentPage))
-          }}
-          disabled={disabled}
-          className="page-input"
-        />
-      </div>
+      {/* Removed 'Go to' box */}
     </div>
   )
 }
