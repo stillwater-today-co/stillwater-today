@@ -103,29 +103,7 @@ const Pagination: React.FC<PaginationProps> = ({
         </button>
       </div>
 
-      <div className="pagination-jump">
-        <span>Go to:</span>
-        <input
-          type="number"
-          min={1}
-          max={totalPages}
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              const page = parseInt(inputValue, 10)
-              if (!isNaN(page) && page >= 1 && page <= totalPages) onPageChange(page)
-            }
-          }}
-          onBlur={() => {
-            const page = parseInt(inputValue, 10)
-            if (!isNaN(page) && page >= 1 && page <= totalPages) onPageChange(page)
-            else setInputValue(String(currentPage))
-          }}
-          disabled={disabled}
-          className="page-input"
-        />
-      </div>
+      {/* Removed 'Go to' box */}
     </div>
   )
 }
