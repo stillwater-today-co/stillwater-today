@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { submitFeedback } from '../firebase/feedbacks';
+import { submitFeedback } from '../lib/firebase/feedbacks';
 import { useAuth } from '../hooks/useAuth';
 
 

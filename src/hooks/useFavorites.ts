@@ -5,8 +5,8 @@ import {
   createUserProfile,
   getUserFavoriteEvents,
   removeEventFromFavorites
-} from '../firebase/firestore'
-import { getCachedEvents } from '../services/eventsService'
+} from '../lib/firebase/firestore'
+import { getCachedEvents } from '../services/events'
 import { useAuth } from './useAuth'
 
 export function useFavorites() {
