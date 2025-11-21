@@ -335,27 +335,52 @@ function formatCost(cost: string | null): string {
 function getEventCategory(filters: EventFilters | undefined): string {
   if (!filters) return 'Other'
   
-  // Priority order: event_types, event_themes, event_program_area, event_audience
-  if (filters.event_types && filters.event_types.length > 0) {
-    return filters.event_types[0].name
+  // Collect all filter names to check
+  const filterNames: string[] = []
+  
+  if (filters.event_types) {
+    filterNames.push(...filters.event_types.map(f => f.name.toLowerCase()))
+  }
+  if (filters.event_themes) {
+    filterNames.push(...filters.event_themes.map(f => f.name.toLowerCase()))
+  }
+  if (filters.event_program_area) {
+    filterNames.push(...filters.event_program_area.map(f => f.name.toLowerCase()))
+  }
+  if (filters.event_audience) {
+    filterNames.push(...filters.event_audience.map(f => f.name.toLowerCase()))
+  }
+  if (filters.event_academic_college) {
+    filterNames.push(...filters.event_academic_college.map(f => f.name.toLowerCase()))
   }
   
-  if (filters.event_themes && filters.event_themes.length > 0) {
-    return filters.event_themes[0].name
+  // Map to one of 5 categories: Academic, Athletic, Community, Health and Wellness, Other
+  
+  // Academic keywords
+  const academicKeywords = ['academic', 'lecture', 'seminar', 'workshop', 'class', 'course', 'education', 'research', 'symposium', 'conference', 'college', 'university', 'student']
+  if (filterNames.some(name => academicKeywords.some(keyword => name.includes(keyword)))) {
+    return 'Academic'
   }
   
-  if (filters.event_program_area && filters.event_program_area.length > 0) {
-    return filters.event_program_area[0].name
+  // Athletic keywords
+  const athleticKeywords = ['athletic', 'sport', 'game', 'competition', 'tournament', 'team', 'football', 'basketball', 'baseball', 'soccer', 'tennis', 'track', 'cowboy', 'cowboys']
+  if (filterNames.some(name => athleticKeywords.some(keyword => name.includes(keyword)))) {
+    return 'Athletic'
   }
   
-  if (filters.event_audience && filters.event_audience.length > 0) {
-    return filters.event_audience[0].name
+  // Health and Wellness keywords
+  const healthKeywords = ['health', 'wellness', 'medical', 'mental', 'counseling', 'fitness', 'nutrition', 'screening', 'therapy', 'wellbeing', 'mindfulness']
+  if (filterNames.some(name => healthKeywords.some(keyword => name.includes(keyword)))) {
+    return 'Health and Wellness'
   }
   
-  if (filters.event_academic_college && filters.event_academic_college.length > 0) {
-    return filters.event_academic_college[0].name
+  // Community keywords
+  const communityKeywords = ['community', 'social', 'cultural', 'diversity', 'multicultural', 'volunteer', 'service', 'event', 'gathering', 'celebration', 'festival', 'arts', 'music', 'theater', 'performance']
+  if (filterNames.some(name => communityKeywords.some(keyword => name.includes(keyword)))) {
+    return 'Community'
   }
   
+  // Default to Other
   return 'Other'
 }
 
