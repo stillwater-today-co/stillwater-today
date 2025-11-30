@@ -263,7 +263,7 @@ const Weather: React.FC = () => {
                 </span>
               </div>
               <div className="weather-detail">
-                <span className="detail-label">Humidity</span>
+                <span className="detail-label">Max Humidity</span>
                 <span className="detail-value">{weatherData.current.humidity}</span>
               </div>
               <div className="weather-detail">

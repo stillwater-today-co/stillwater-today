@@ -426,8 +426,6 @@ export async function searchEvents(keyword: string): Promise<ProcessedEvent[]> {
 
 // Filter events by date
 export function filterEventsByDate(events: ProcessedEvent[], filter: 'all' | 'today' | 'upcoming'): ProcessedEvent[] {
-  console.log(`Filtering ${events.length} events by date filter: ${filter}`)
-  
   if (filter === 'all') return events
   
   const now = new Date()
@@ -443,7 +441,6 @@ export function filterEventsByDate(events: ProcessedEvent[], filter: 'all' | 'to
       eventDate.setHours(0, 0, 0, 0)
       return eventDate.getTime() === today.getTime()
     })
-    console.log(`Today filter result: ${filtered.length} events`)
     return filtered
   }
   
@@ -451,7 +448,6 @@ export function filterEventsByDate(events: ProcessedEvent[], filter: 'all' | 'to
     const filtered = events.filter(event => {
       return event.rawDate.getTime() > now.getTime()
     })
-    console.log(`Upcoming filter result: ${filtered.length} events`)
     return filtered
   }
   

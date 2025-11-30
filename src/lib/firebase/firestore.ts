@@ -31,16 +31,13 @@ export interface UserProfile {
 // Create or update user profile
 export async function createUserProfile(user: User): Promise<UserProfile> {
   try {
-    console.log('createUserProfile called for user:', user.uid)
     
     if (!user.uid) {
       throw new Error('User UID is required')
     }
 
     const userRef = doc(firestore, 'users', user.uid)
-    console.log('Getting user document...')
     const userDoc = await getDoc(userRef)
-    console.log('User document exists:', userDoc.exists())
 
     const profile: UserProfile = {
       uid: user.uid,
@@ -51,7 +48,6 @@ export async function createUserProfile(user: User): Promise<UserProfile> {
       updatedAt: new Date()
     }
 
-    console.log('Setting user document with profile:', profile)
     
     // Create document data without undefined values
     const docData: Record<string, unknown> = {
@@ -69,7 +65,6 @@ export async function createUserProfile(user: User): Promise<UserProfile> {
     
     await setDoc(userRef, docData, { merge: true })
     
-    console.log('User profile created/updated successfully')
     return profile
   } catch (error) {
     console.error('Error creating user profile:', error)
@@ -110,15 +105,12 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
 // Add event to user favorites
 export async function addEventToFavorites(uid: string, eventId: number): Promise<void> {
   try {
-    console.log('addEventToFavorites called with uid:', uid, 'eventId:', eventId)
     const userRef = doc(firestore, 'users', uid)
     
     // Check if document exists first
     const userDoc = await getDoc(userRef)
-    console.log('User document exists:', userDoc.exists())
     
     if (!userDoc.exists()) {
-      console.log('User document does not exist, creating it first')
       // Create the document with the favorite event
       await setDoc(userRef, {
         uid: uid,
@@ -126,15 +118,12 @@ export async function addEventToFavorites(uid: string, eventId: number): Promise
         updatedAt: new Date(),
         createdAt: new Date()
       })
-      console.log('User document created with first favorite')
     } else {
-      console.log('User document exists, updating favorites')
       // Update existing document
       await updateDoc(userRef, {
         favoriteEvents: arrayUnion(eventId),
         updatedAt: new Date()
       })
-      console.log('Favorites updated successfully')
     }
   } catch (error) {
     console.error('Error adding event to favorites:', error)
@@ -151,24 +140,19 @@ export async function addEventToFavorites(uid: string, eventId: number): Promise
 // Remove event from user favorites
 export async function removeEventFromFavorites(uid: string, eventId: number): Promise<void> {
   try {
-    console.log('removeEventFromFavorites called with uid:', uid, 'eventId:', eventId)
     const userRef = doc(firestore, 'users', uid)
     
     // Check if document exists first
     const userDoc = await getDoc(userRef)
-    console.log('User document exists:', userDoc.exists())
     
     if (!userDoc.exists()) {
-      console.log('User document does not exist, nothing to remove')
       return // Nothing to remove if document doesn't exist
     }
     
-    console.log('Removing event from favorites')
     await updateDoc(userRef, {
       favoriteEvents: arrayRemove(eventId),
       updatedAt: new Date()
     })
-    console.log('Event removed from favorites successfully')
   } catch (error) {
     console.error('Error removing event from favorites:', error)
     const firebaseError = error as FirebaseError
@@ -184,18 +168,15 @@ export async function removeEventFromFavorites(uid: string, eventId: number): Pr
 // Get user's favorite events
 export async function getUserFavoriteEvents(uid: string): Promise<number[]> {
   try {
-    console.log('getUserFavoriteEvents called for uid:', uid)
     const userRef = doc(firestore, 'users', uid)
     const userDoc = await getDoc(userRef)
     
     if (!userDoc.exists()) {
-      console.log('User document does not exist, returning empty favorites')
       return []
     }
     
     const data = userDoc.data()
     const favorites = data.favoriteEvents || []
-    console.log('Retrieved user favorites:', favorites)
     return favorites
   } catch (error) {
     console.error('Error getting user favorites:', error)
@@ -222,12 +203,10 @@ export async function isEventFavorited(uid: string, eventId: number): Promise<bo
 // Clean up duplicate favorites for a user
 export async function cleanupDuplicateFavorites(uid: string): Promise<void> {
   try {
-    console.log('Cleaning up duplicate favorites for user:', uid)
     const userRef = doc(firestore, 'users', uid)
     const userDoc = await getDoc(userRef)
     
     if (!userDoc.exists()) {
-      console.log('User document does not exist, nothing to clean')
       return
     }
     
@@ -238,14 +217,11 @@ export async function cleanupDuplicateFavorites(uid: string): Promise<void> {
     const uniqueFavorites = Array.from(new Set(favorites))
     
     if (uniqueFavorites.length !== favorites.length) {
-      console.log(`Found ${favorites.length - uniqueFavorites.length} duplicates, cleaning up`)
       await updateDoc(userRef, {
         favoriteEvents: uniqueFavorites,
         updatedAt: new Date()
       })
-      console.log('Duplicates cleaned up successfully')
     } else {
-      console.log('No duplicates found')
     }
   } catch (error) {
     console.error('Error cleaning up duplicate favorites:', error)
