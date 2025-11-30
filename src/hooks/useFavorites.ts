@@ -217,7 +217,7 @@ export function useFavorites() {
     }
     
     try {
-      const testResult = await createUserProfile(user)
+      await createUserProfile(user)
       
       // Also clean up duplicates
       await cleanupDuplicateFavorites(user.uid)

@@ -221,7 +221,6 @@ export async function cleanupDuplicateFavorites(uid: string): Promise<void> {
         favoriteEvents: uniqueFavorites,
         updatedAt: new Date()
       })
-    } else {
     }
   } catch (error) {
     console.error('Error cleaning up duplicate favorites:', error)
