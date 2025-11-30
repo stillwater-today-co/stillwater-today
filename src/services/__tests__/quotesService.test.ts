@@ -1,5 +1,5 @@
 ﻿import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import { clearQuoteCache, fetchRandomQuote } from '../quotesService';
+import { clearQuoteCache, fetchRandomQuote } from '../ai/quotes';
 
 describe('quotesService', () => {
   const originalFetch = global.fetch;

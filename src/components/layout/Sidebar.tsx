@@ -56,7 +56,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             href="/feedback"
             target="_blank"
             rel="noopener noreferrer"
-            style={{display: 'flex', alignItems: 'center'}}
           >
             <Mail size={18} style={{marginRight: 6, verticalAlign: 'middle'}} /> Send Feedback
           </a>

@@ -164,6 +164,7 @@ async function getCurrentWeather(observationStationsUrl: string): Promise<NWSCur
       // If this station has good basic data, use it
       if (hasTemperature && hasWind) {
 
+        
         let humidityValue = props.relativeHumidity?.value || null
         
         // Check wind unit and convert appropriately
@@ -194,8 +195,8 @@ async function getCurrentWeather(observationStationsUrl: string): Promise<NWSCur
         
         // Get humidity from backup stations if primary station doesn't have it
         if (!humidityValue) {
-          // Try multiple backup stations - prioritizing major airports with reliable sensors
-          const backupStations = ['KOKC', 'KOUN', 'KPWA', 'KCUH', 'KPNC'] // OKC Will Rogers, Norman, Wiley Post, Cushing, Ponca City
+          // Try multiple backup stations - prioritizing closer stations first
+          const backupStations = ['KCUH', 'KPNC', 'KOKC', 'KTUL', 'KOUN', 'KEND'] // Cushing, Ponca City, OKC, Tulsa, Norman, Enid
           
           for (const stationId of backupStations) {
             try {

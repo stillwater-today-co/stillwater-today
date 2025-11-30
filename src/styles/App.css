@@ -830,9 +830,6 @@
   transition: all 0.2s ease;
   font-size: 0.875rem;
   font-weight: 500;
-  text-decoration: none;
-  display: block;
-  box-sizing: border-box;
 }
 
 .sidebar-btn:hover {
@@ -935,24 +932,50 @@
 }
 
 .refresh-btn {
-  background: linear-gradient(135deg, #1f1f1f 0%, #0f0f0f 100%);
-  border: 1px solid transparent;
-  color: #e2e8f0;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  border: none;
+  color: white;
   padding: 0.5rem 1rem;
-  border-radius: 12px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 0.875rem;
   font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   gap: 0.5rem;
   min-width: 100px;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.refresh-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.refresh-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+}
+
+.refresh-btn:hover:not(:disabled)::before {
+  left: 100%;
 }
 
 .refresh-btn:disabled {
   background: #64748b;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .refresh-btn.loading {
@@ -1337,6 +1360,36 @@
   gap: 0.75rem;
 }
 
+.refresh-btn {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  color: #cbd5e1;
+  padding: 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.refresh-btn:hover:not(:disabled) {
+  background: rgba(249, 115, 22, 0.1);
+  border-color: rgba(249, 115, 22, 0.3);
+  color: #f97316;
+}
+
+.refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.refresh-btn.loading .refresh-icon {
+  animation: spin 1s linear infinite;
+}
+
 .refresh-icon {
   font-size: 1.25rem;
   transition: transform 0.2s ease;
@@ -1390,9 +1443,9 @@
 .category-filter {
   display: flex;
   align-items: center;
-  width: 100%;
 }
 
+/* Make dropdown span the width of all filter buttons */
 .category-dropdown {
   background: rgba(30, 41, 59, 0.8);
   border: 1px solid rgba(71, 85, 105, 0.3);
@@ -1401,7 +1454,11 @@
   border-radius: 6px;
   font-size: 0.875rem;
   cursor: pointer;
+  min-width: 160px;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  display: block;
 }
 
 .category-dropdown:focus {

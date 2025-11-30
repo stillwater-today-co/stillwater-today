@@ -1,5 +1,30 @@
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor, act } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+// Mock Firebase modules FIRST before any imports
+vi.mock('firebase/auth', () => ({
+  getAuth: vi.fn(() => ({ currentUser: null })),
+  onAuthStateChanged: vi.fn()
+}));
+
+vi.mock('firebase/firestore', () => ({
+  getFirestore: vi.fn(() => ({})),
+  doc: vi.fn(),
+  getDoc: vi.fn(),
+  setDoc: vi.fn(),
+  updateDoc: vi.fn(),
+  arrayUnion: vi.fn(),
+  arrayRemove: vi.fn()
+}));
+
+vi.mock('../../lib/firebase/config', () => ({
+  app: { name: '[DEFAULT]', options: {}, automaticDataCollectionEnabled: false },
+  auth: { currentUser: null },
+  firestore: {},
+  storage: {},
+  analytics: null
+}));
+
 import * as firestoreModule from '../../lib/firebase/firestore';
 import { useFavorites } from '../useFavorites';
 import * as authHook from '../useAuth';
@@ -115,12 +140,18 @@ describe('useFavorites Integration Tests', () => {
     vi.mocked(firestoreModule.getUserFavoriteEvents).mockResolvedValue([42]);
 
     // Add a favorite
-    await result.current.addFavorite(42);
+    await act(async () => {
+      await result.current.addFavorite(42);
+    });
 
     // Verify integration: hook called Firestore to add favorite
     expect(firestoreModule.addEventToFavorites).toHaveBeenCalledWith(mockUser.uid, 42);
     
     // Verify the hook reloaded favorites from Firestore
+    // Wait for state update
+    await waitFor(() => {
+      expect(result.current.favorites).toEqual([42]);
+    });
     expect(firestoreModule.getUserFavoriteEvents).toHaveBeenCalledTimes(2);
     expect(result.current.favorites).toEqual([42]);
   });
@@ -146,12 +177,18 @@ describe('useFavorites Integration Tests', () => {
     vi.mocked(firestoreModule.getUserFavoriteEvents).mockResolvedValue([]);
 
     // Remove the favorite
-    await result.current.removeFavorite(42);
+    await act(async () => {
+      await result.current.removeFavorite(42);
+    });
 
     // Verify integration: hook called Firestore to remove favorite
     expect(firestoreModule.removeEventFromFavorites).toHaveBeenCalledWith(mockUser.uid, 42);
     
     // Verify the hook reloaded favorites from Firestore
+    // Wait for state update
+    await waitFor(() => {
+      expect(result.current.favorites).toEqual([]);
+    });
     expect(firestoreModule.getUserFavoriteEvents).toHaveBeenCalledTimes(2);
     expect(result.current.favorites).toEqual([]);
   });

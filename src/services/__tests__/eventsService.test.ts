@@ -8,7 +8,7 @@ import {
   getEventCategories,
   sortEventsByPopularity,
   type ProcessedEvent
-} from '../eventsService';
+} from '../events';
 
 const makeEvent = (overrides: Partial<ProcessedEvent>): ProcessedEvent => ({
   id: overrides.id ?? Math.floor(Math.random() * 10000),

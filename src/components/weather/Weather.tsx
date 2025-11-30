@@ -208,11 +208,11 @@ const Weather: React.FC = () => {
           </button>
 
           <button 
-            className={`refresh-btn ${isLoading ? 'loading' : ''}`}
+            className={`refresh-btn${isLoading ? ' loading' : ''}`}
             onClick={handleRefresh}
             disabled={isLoading}
           >
-            <span className="refresh-icon"><RefreshCw size={14} className={isLoading ? 'spinning' : ''} /></span>
+            <span className="refresh-icon"><RefreshCw size={14} /></span>
             <span className="refresh-text">
               {isLoading ? 'Refreshing...' : 'Refresh'}
             </span>
@@ -263,7 +263,7 @@ const Weather: React.FC = () => {
                 </span>
               </div>
               <div className="weather-detail">
-                <span className="detail-label">Max Humidity</span>
+                <span className="detail-label">Humidity</span>
                 <span className="detail-value">{weatherData.current.humidity}</span>
               </div>
               <div className="weather-detail">
