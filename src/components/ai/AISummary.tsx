@@ -6,40 +6,8 @@ const AISummary: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [summary, setSummary] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
-  const [weatherBullet, setWeatherBullet] = useState<string>('')
   const [eventsBullet, setEventsBullet] = useState<string>('')
   const [quoteBullet, setQuoteBullet] = useState<string>('')
-
-  // Parse the AI-generated summary into two bullets: weather and events.
-  const parseSummaryToBullets = useCallback((text: string) => {
-    const result = { weather: '', events: '' }
-    if (!text) return result
-
-    // Try to find explicit headings first (Weather / Events)
-    const weatherMatch = text.match(/weather\s*[:\-–]\s*([\s\S]*?)(?=events\s*[:\-–]|$)/i)
-    const eventsMatch = text.match(/events?\s*[:\-–]\s*([\s\S]*?)$/i)
-
-    if (weatherMatch || eventsMatch) {
-      result.weather = (weatherMatch && weatherMatch[1].trim()) || ''
-      result.events = (eventsMatch && eventsMatch[1].trim()) || ''
-      return result
-    }
-
-    // Fallback: split into sentences and distribute roughly in half
-    const sentences = text.match(/[^.!?]+[.!?]*/g) || [text]
-    const n = sentences.length
-    if (n === 1) {
-      // If only one sentence, use it for events
-      result.weather = ''
-      result.events = sentences[0].trim()
-      return result
-    }
-
-    const half = Math.max(1, Math.ceil(n / 2))
-    result.weather = sentences.slice(0, half).join(' ').trim()
-    result.events = sentences.slice(half).join(' ').trim()
-    return result
-  }, [])
 
   const loadSummary = useCallback(async (forceRefresh: boolean = false) => {
     try {
@@ -68,7 +36,7 @@ const AISummary: React.FC = () => {
     } finally {
       setIsLoading(false)
     }
-  }, [parseSummaryToBullets])
+  }, [])
 
   useEffect(() => {
     loadSummary(false)
