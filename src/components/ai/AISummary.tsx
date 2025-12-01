@@ -47,9 +47,8 @@ const AISummary: React.FC = () => {
       setError(null)
       const text = await generateTodayEventsSummary({ limit: 10, forceRefresh })
       setSummary(text)
-      const { weather, events } = parseSummaryToBullets(text)
-      setWeatherBullet(weather)
-      setEventsBullet(events)
+      // Use the entire summary text for events (includes weather + events)
+      setEventsBullet(text)
       
       // Always fetch a real positive quote from ZenQuotes instead of parsing from AI
       let quoteBullet = ''
@@ -101,7 +100,6 @@ const AISummary: React.FC = () => {
           <div className="summary-text">
             <p>Hello Friend!</p>
             <ul className="ai-summary-bullets">
-              <li><strong>Weather:</strong> {weatherBullet || 'No weather summary available.'}</li>
               <li><strong>Events:</strong> {eventsBullet || summary}</li>
               <li><strong>Today's positive quote:</strong> {quoteBullet || 'Have a great day!'}</li>
             </ul>
