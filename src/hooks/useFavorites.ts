@@ -77,7 +77,6 @@ export function useFavorites() {
 
       // Remove expired events from Firestore
       if (expiredIds.length > 0) {
-        console.log('Removing expired events from favorites:', expiredIds)
         for (const expiredId of expiredIds) {
           await removeEventFromFavorites(user.uid, expiredId)
         }
@@ -95,7 +94,6 @@ export function useFavorites() {
   // Load user favorites when user changes
   useEffect(() => {
     const loadFavorites = async () => {
-      console.log('loadFavorites called, user:', user, 'loading:', loading)
       if (!user) {
         setFavorites([])
         return
@@ -127,7 +125,6 @@ export function useFavorites() {
     }
 
     if (!loading) {
-      console.log('Auth not loading, calling loadFavorites')
       loadFavorites()
     }
   }, [user, loading, cleanupExpiredEvents])
@@ -140,18 +137,15 @@ export function useFavorites() {
     }
 
     if (favorites.includes(eventId)) {
-      console.log('Event already favorited:', eventId)
       return true
     }
 
     try {
       setError(null)
-      console.log('Adding to Firestore:', eventId)
       await addEventToFavorites(user.uid, eventId)
       
       // Reload favorites from Firestore to ensure consistency
       const updatedFavorites = await getUserFavoriteEvents(user.uid)
-      console.log('Reloaded favorites from Firestore:', updatedFavorites)
       
       setFavorites(updatedFavorites)
       emitFavoritesChanged(updatedFavorites, 'added', eventId)
@@ -172,12 +166,10 @@ export function useFavorites() {
 
     try {
       setError(null)
-      console.log('Removing from Firestore:', eventId)
       await removeEventFromFavorites(user.uid, eventId)
       
       // Reload favorites from Firestore to ensure consistency
       const updatedFavorites = await getUserFavoriteEvents(user.uid)
-      console.log('Reloaded favorites from Firestore:', updatedFavorites)
       
       setFavorites(updatedFavorites)
       emitFavoritesChanged(updatedFavorites, 'removed', eventId)
@@ -191,9 +183,6 @@ export function useFavorites() {
 
   // Toggle favorite status
   const toggleFavorite = useCallback(async (eventId: number) => {
-    console.log('toggleFavorite called for eventId:', eventId)
-    console.log('Current favorites:', favorites)
-    console.log('User:', user)
     
     // Prevent duplicate operations
     if (pendingOperations.has(eventId)) return false
@@ -224,23 +213,18 @@ export function useFavorites() {
   // Test function to check Firestore connectivity
   const testFirestore = useCallback(async () => {
     if (!user) {
-      console.log('No user for Firestore test')
       return
     }
     
     try {
-      console.log('Testing Firestore connectivity...')
-      const testResult = await createUserProfile(user)
-      console.log('Firestore test successful:', testResult)
+      await createUserProfile(user)
       
       // Also clean up duplicates
-      console.log('Cleaning up any duplicate favorites...')
       await cleanupDuplicateFavorites(user.uid)
       
       // Reload favorites after cleanup
       const cleanedFavorites = await getUserFavoriteEvents(user.uid)
       setFavorites(Array.from(new Set(cleanedFavorites)))
-      console.log('Cleanup complete, current favorites:', cleanedFavorites)
     } catch (error) {
       console.error('Firestore test failed:', error)
     }

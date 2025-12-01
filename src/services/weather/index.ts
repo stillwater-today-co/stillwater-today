@@ -196,7 +196,7 @@ async function getCurrentWeather(observationStationsUrl: string): Promise<NWSCur
         // Get humidity from backup stations if primary station doesn't have it
         if (!humidityValue) {
           // Try multiple backup stations - prioritizing closer stations first
-          const backupStations = ['KCUH', 'KPNC', 'KOKC', 'KTUL', 'KOUN', 'KEND'] // Cushing, Ponca City, OKC, Tulsa, Norman, Enid
+          const backupStations = ['KPNC', 'KOKC', 'KTUL', 'KOUN', 'KEND'] // Ponca City, OKC, Tulsa, Norman, Enid (KCUH removed - currently offline)
           
           for (const stationId of backupStations) {
             try {
